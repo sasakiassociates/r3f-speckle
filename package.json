@@ -18,7 +18,8 @@
     "test": "jest --config jest.config.ts",
     "esbuild": "pnpm run type | node esbuild.config.js",
     "eswatch": "pnpm run type | node watch.esbuild.config.js",
-    "localPub": "pnpm publish --registry http://localhost:4873 --no-git-checks"
+    "localPub": "pnpm run esbuild | pnpm publish --registry http://localhost:4873 --no-git-checks",
+    "npmPub": "pnpm run esbuild | pnpm publish"
   },
   "dependencies": {
     "@react-three/drei": "^9.89.0",
@@ -42,23 +43,22 @@
     "three": "^0.159.0"
   },
   "devDependencies": {
-    "@parcel/packager-ts": "2.11.0",
-    "@parcel/transformer-typescript-types": "2.11.0",
     "@types/chroma-js": "^2.4.4",
     "@types/react": "^18.0.24",
     "@types/react-dom": "^18.0.8",
     "@types/three": "^0.159.0",
     "@vitejs/plugin-react": "^2.2.0",
-    "sass": "^1.71.1",
     "autoprefixer": "^10.4.18",
-    "ts-jest": "^29.1.2",
-    "ts-node": "^10.9.2",
-    "tslib": "^2.6.2",
+    "esbuild": "^0.20.1",
+    "esbuild-sass-plugin": "^3.1.0",
     "postcss": "^8.4.35",
     "postcss-copy-assets": "^0.3.1",
     "postcss-modules": "^6.0.0",
     "postcss-preset-env": "^9.5.0",
-    "esbuild": "^0.20.1",
-    "esbuild-sass-plugin": "^3.1.0"
+    "sass": "^1.71.1",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.5"
   }
 }
