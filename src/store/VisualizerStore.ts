@@ -1,9 +1,6 @@
 import { computed, makeAutoObservable, makeObservable, observable } from "mobx";
 import type { NodeDataWrapper, SpeckleStore } from "../speckle";
 
-/**
- * root class for OspVisualizer store
- */
 export abstract class VisualizerStore {
     speckleStore?: SpeckleStore;
      protected constructor() {

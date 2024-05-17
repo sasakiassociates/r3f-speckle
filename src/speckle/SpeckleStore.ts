@@ -15,7 +15,6 @@ export class SpeckleStore {
     @observable
     floorPlanImageUrlRectMap: { [key: string]: { rect: Rect, url: string } } = {};
 
-    // will be set to ospVisualizer in loadSpeckleStream method
     @observable
     visualizerStore?: VisualizerStore;
 
