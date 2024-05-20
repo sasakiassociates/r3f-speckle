@@ -13,14 +13,21 @@ import { toJS } from 'mobx';
 
 import './SpeckleScene.scss';
 
-const colorGeometry = (geometry: NodeDataWrapper) => {
+const getMaterialProps = (geometry: NodeDataWrapper): { color: string, opacity?: number, transparent?: boolean } => {
     const { visualizerStore } = speckleStore;
-    if (!visualizerStore) return '#ffffff';
+    if (!visualizerStore) return { color: '#ffffff' };
 
     let id = visualizerStore.getId(geometry);
 
-    return visualizerStore.colorById[id] || '#ffffff';
-};
+    let colorState = visualizerStore.colorById[id];
+    if (colorState.opacity < 1) {
+        return {
+            ...colorState,
+            transparent: true,
+        };
+    }
+    return colorState || { color: '#ffffff' };
+}
 
 const nameGeometry = (geometry: NodeDataWrapper) => {
     const { visualizerStore } = speckleStore;
@@ -58,7 +65,7 @@ function Scene(props: SceneProps) {
             <directionalLight position={lightPosition} intensity={lightIntensity}/>
             {planViewMode ?
                 <PlanViewOrbitControls/> :
-                <OrbitControls enableRotate={false}/>
+                <OrbitControls enableRotate={true}/>
             }
             {displayMeshes &&
                 speckleStore.includedMeshes.map(geometry => {
@@ -73,7 +80,8 @@ function Scene(props: SceneProps) {
                             receiveShadow={selfShading}
                         >
                             {/* filled COLOR */}
-                            <meshStandardMaterial color={colorGeometry(geometry)}/>
+                            {}
+                            <meshStandardMaterial {...getMaterialProps(geometry)}/>
                             {/* each unit's name appears as a label*/}
                             {nameGeometry(geometry) && (
                                 <Html key={`label-${geometry.id}`} position={center}>

@@ -1,7 +1,7 @@
 {
   "name": "@strategies/r3f-speckle",
   "private": false,
-  "version": "0.0.1",
+  "version": "0.0.1-b.7",
   "type": "module",
   "source": "src/index.ts",
   "main": "dist/index.js",
@@ -18,7 +18,7 @@
     "test": "jest --config jest.config.ts",
     "esbuild": "pnpm run type | node esbuild.config.js",
     "eswatch": "pnpm run type | node watch.esbuild.config.js",
-    "localPub": "pnpm run esbuild | pnpm publish --registry http://localhost:4873 --no-git-checks",
+    "localPub": "pnpm publish --registry http://localhost:4873 --no-git-checks",
     "npmPub": "pnpm run esbuild | pnpm publish --access public"
   },
   "dependencies": {

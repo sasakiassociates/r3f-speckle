@@ -7,7 +7,7 @@ export abstract class VisualizerStore {
         makeObservable(this);
     }
     @computed
-    get colorById(): { [id: string]: string } {
+    get colorById(): { [id: string]: { color:string, opacity:number } } {
         throw new Error('colorById not implemented');
     }
 

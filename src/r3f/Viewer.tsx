@@ -58,6 +58,8 @@ export type CameraStore = {
     setCamera(camera: (OrthographicCamera | PerspectiveCamera)): void;
 }
 
+//TODO why are base images treated differently from meshes and lines? I guess they currently are manually specified
+//but when they come in from Speckle we should treat them like other Speckle elements
 type ViewerProps = {
     cameraStore: CameraStore,
     baseImages: BaseImageProps[]

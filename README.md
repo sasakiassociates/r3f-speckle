@@ -11,7 +11,7 @@ The core issue is that there are fundamental differences in how we want to handl
 
 ### A better approach
 
-React Three Fiber (R3F) is a broadly popular wrapper for Three.js that provides full control over the Three.js codebase in a reactive way and maps perfectly to the way we manipulate SVG or HTML DOM elements. Reactive states can thus flow throughout the application without risk of edge cases.
+React Three Fiber (R3F) is a broadly popular wrapper for Three.js that provides full control over the Three.js codebase in a reactive way and maps precisely to the way we manipulate SVG or HTML DOM elements. Reactive states can thus flow throughout the application without risk of edge cases.
 
 Using React Three Fiber (R3F) over imperative Three.js can lead to a more logical, composable, and maintainable codebase due to several key factors:
 
@@ -42,3 +42,56 @@ The [_maintain](_maintain) scripts can be used to grab the latest speckle code a
 If needed (though these are unlikely to change) manually update these to TS (or use ChatGPT):
 * [Units.js](src%2Fspeckle%2Fmodules%2Fconverter%2FUnits.js)
 * [MeshTriangulationHelper.js](src%2Fspeckle%2Fmodules%2Fconverter%2FMeshTriangulationHelper.js)
+
+
+## Using r3f-speckle
+
+### Consuming speckle data
+Each specific implementation should extend the abstract `SpeckleLoader` and override `processSpeckleData`:
+
+For every data-connected 3D object, we then make a `NodeDataWrapper` and add it to the `speckleStore`
+```
+    for (let item of data['Parcels']) {
+        const parcelWrapper = new NodeDataWrapper(loader, item, { itemId });
+        speckleStore.addMesh(parcelWrapper);        
+    }    
+```
+
+Though speckle bundles data and geometry, in our application we very intentionally de-couple the data and our 3D representation of that data. This is because we consider the 3D viewer just one of potentially many views on that data. The only necessary connection is a single ID to link between data state and 3D view representation.
+
+In addition to adding to the `speckleStore` we likely extract a data schema and add elements. The data structure depends on decisions made in Grasshopper or other connectors. This is handled independent of this module, but an example usage may look like this:
+
+```
+const data: DataSchema = {
+    buildings: extractBuildings(speckleData['@Buildings']),
+};
+
+extractBuildings(speckleArr: any) {
+    return speckleArray(speckleArr).map((p: any, i: number) => {
+        return {
+            id: p.buildingID,
+            floorplanIds: p.floorplans.Items,
+        };
+    });
+}
+```
+
+### VisualizerStore
+This class links to speckleStore and helps manage object states. It primarily manages interpreting the current state for each NodeDataWrapper object. For example the current color of the object is managed by providing a `colorById` lookup.
+
+```
+    let id = visualizerStore.getId(geometry);
+    return visualizerStore.colorById[id] || '#ffffff';
+```
+
+### Viewing in 3D
+Include the Viewer. Currently a "global" `speckleStore` object is used to connect everything so no data context needs to be passed. 
+```
+ <Viewer
+    planViewMode={true}
+    cameraStore={mainStore.cameraStore}
+    baseImages={[
+        { imageUrl: baseImgUrl, rectangle: baseImgRect }
+    ]}/>
+```
+Note: use of the global speckleStore is likely to change if we need more sophisticated, composable integrations with multiple viewers. 
