@@ -5,6 +5,7 @@ import type { MainStore } from "./MainStore.ts";
 
 export class BasicDataManager extends SpeckleDataManager {
     private mainStore: MainStore;
+
     constructor(mainStore: MainStore) {
         super();
         this.mainStore = mainStore;
@@ -35,7 +36,11 @@ export class BasicDataManager extends SpeckleDataManager {
                 for (let element of collection.elements) {
                     const geometryObj = element["@displayValue"][0];
                     console.log("element", element);
-                    this.addMesh(geometryObj, {id:element.id})
+                    const w = this.addMesh(geometryObj,
+                        { id: element.id });
+                    if (w) w.events.on('click', (e) => {
+                        this.mainStore.visualizerStore.toggleSelectOnNode(element.id)
+                    });
                     // mainStore.addElement(programChunkObj);
                 }
             }

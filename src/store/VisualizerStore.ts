@@ -24,6 +24,10 @@ export abstract class VisualizerStore {
         return true;
     }
 
+    nodeIsSelected(n: NodeDataWrapper) {
+        return false;
+    }
+
     setSpeckleStore(speckleStore: SpeckleStore) {
         this.speckleStore = speckleStore;
         this.initSpeckleStore();

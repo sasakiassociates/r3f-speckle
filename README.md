@@ -25,6 +25,7 @@ Challenges:
 * While very large, the r3f community is smaller than the pure three.js one in terms of finding solutions to issues. 
 * r3f is newer so AI code-assist may not be as comprehensive.
 * Many examples are in pure three.js and need to be translated.
+* Some concepts (such as reusing materials) are harder to generalize into an atomic approach
 
 
 ## Relationship to Speckle Viewer Source

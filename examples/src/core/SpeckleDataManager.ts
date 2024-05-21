@@ -24,6 +24,7 @@ export abstract class SpeckleDataManager {
         const wrapper = new NodeDataWrapper(loader, data, metadata)
         speckleStore.addMesh(wrapper);
         this.figureAutoOffset(wrapper);
+        return wrapper;
 
     }
 

@@ -6,6 +6,20 @@ import { makeObservable, observable, runInAction } from "mobx";
 import { generateUUID } from "../utils";
 import type ObjectLoader from "@speckle/objectloader";
 import type { GeometryData } from "./modules/converter/Geometry";
+import { EventEmitter } from "@strategies/react-events";
+import type { ThreeEvent } from "@react-three/fiber";
+
+type NodeEventArgs = {
+    click: { event: ThreeEvent<MouseEvent> };
+};
+
+export class NodeEvents extends EventEmitter<NodeEventArgs> {
+    broadcast(event: keyof NodeEventArgs, data?: NodeEventArgs[keyof NodeEventArgs]) {
+        //'broadcast' is an external trigger for an 'emit'
+        this.emit(event, data)
+    }
+
+}
 
 export class NodeDataWrapper implements NodeData {
     raw: { [prop: string]: any };
@@ -19,6 +33,8 @@ export class NodeDataWrapper implements NodeData {
 
     speckleType: string;
     id: string = generateUUID();
+
+    events = new NodeEvents();
 
     @observable
     conversionComplete = false;

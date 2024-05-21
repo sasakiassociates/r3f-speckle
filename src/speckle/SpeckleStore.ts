@@ -66,6 +66,20 @@ export class SpeckleStore {
         return this.loadedMeshes.filter(n => visualizerStore.includeNode(n));
     }
 
+    @computed
+    get selectedMeshes() : NodeDataWrapper[] {
+        const visualizerStore = this.visualizerStore;
+        if (!visualizerStore) return [];
+        return this.includedMeshes.filter(n => visualizerStore.nodeIsSelected(n));
+    }
+
+    @computed
+    get unselectedMeshes() : NodeDataWrapper[] {
+        const visualizerStore = this.visualizerStore;
+        if (!visualizerStore) return this.includedMeshes;
+        return this.includedMeshes.filter(n => !visualizerStore.nodeIsSelected(n));
+    }
+
     setVisualizerStore<T extends VisualizerStore>(visualizer: T) {
         this.visualizerStore = visualizer;
         this.visualizerStore.setSpeckleStore(this);

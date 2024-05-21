@@ -14,9 +14,28 @@ export class BasicVisualizerStore extends VisualizerStore {
     @observable
     materialNamesByElementId: { [key: string]: string; } = {}
 
+    @observable
+    selectedNodeIds: string[] = [];
+
     constructor() {
         super();
         makeObservable(this);
+    }
+
+    @action
+    selectNode(nodeId: string, select = true) {
+        const selIdx = this.selectedNodeIds.indexOf(nodeId);
+        if (select) {
+            if (selIdx < 0) this.selectedNodeIds.push(nodeId);
+        } else {
+            if (selIdx >= 0) this.selectedNodeIds.splice(selIdx, 1);
+        }
+    }
+
+    @action
+    toggleSelectOnNode(nodeId:string) {
+        const selIdx = this.selectedNodeIds.indexOf(nodeId);
+        this.selectNode(nodeId, selIdx < 0)
     }
 
     @action
@@ -46,9 +65,15 @@ export class BasicVisualizerStore extends VisualizerStore {
         return true;
     }
 
+    override nodeIsSelected(n: NodeDataWrapper) {
+        const id = this.getId(n);
+        if (!id) return false;
+        return this.selectedNodeIds.indexOf(id) >= 0;
+    }
+
     @override
     get colorById(): { [id: string]: { color: string, opacity: number } } {
-        const ans: { [id: string]: { color: string, opacity: number, flat?:boolean } } = {};
+        const ans: { [id: string]: { color: string, opacity: number, flat?: boolean } } = {};
         for (let id in this.materialNamesByElementId) {
             ans[id] = this.color(this.materialNamesByElementId[id])
         }
@@ -60,6 +85,9 @@ export class BasicVisualizerStore extends VisualizerStore {
         const ans: { [id: string]: string } = {};
         for (let id in this.materialNamesByElementId) {
             ans[id] = this.materialNamesByElementId[id]
+            if (this.selectedNodeIds.indexOf(id) >= 0) {
+                ans[id] += '*'
+            }
         }
         return ans;
     }
