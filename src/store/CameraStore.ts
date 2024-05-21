@@ -19,6 +19,12 @@ export class CameraStore {
     @observable
     zoomStep: number = 10;
 
+    @observable
+    fov = 75;
+
+    @observable
+    farClip = 10000;
+
     @action
     setCamera(cam: CameraType) {
         this.camera = cam;

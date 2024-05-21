@@ -54,14 +54,16 @@ const BufferLine = ({ bufferGeometry }: LineProps) => {
 //     return <primitive />
 // }
 
-export type CameraStore = {
+export type CameraStoreAttributes = {
+    fov: number,
+    farClip: number
     setCamera(camera: (OrthographicCamera | PerspectiveCamera)): void;
 }
 
 //TODO why are base images treated differently from meshes and lines? I guess they currently are manually specified
 //but when they come in from Speckle we should treat them like other Speckle elements
 type ViewerProps = {
-    cameraStore: CameraStore,
+    cameraStore: CameraStoreAttributes,
     baseImages: BaseImageProps[]
     planViewMode?: boolean
 };
@@ -87,7 +89,7 @@ export const Viewer = observer((props: ViewerProps) => {
             <Canvas
                 shadows
                 // defaultCamera
-                camera={{ position: [0, 60, 0], fov: 75 }}
+                camera={{ position: [0, 60, 0], fov: cameraStore.fov, far: cameraStore.farClip }}
                 onCreated={({ camera }) => cameraStore?.setCamera(camera)}
                 flat={!toneMapping}
             >

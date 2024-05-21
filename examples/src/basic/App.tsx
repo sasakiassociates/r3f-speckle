@@ -3,8 +3,8 @@ import './App.scss';
 import { useEffect } from "react";
 import { mainStore } from "../core/MainStore.ts";
 import { Viewer } from "@strategies/r3f-speckle/r3f";
-import { CameraStore } from "../core/CameraStore.ts";
 import { useControls } from 'leva';
+import { CameraStore } from "@strategies/r3f-speckle/store";
 
 export type AppProps = {
 };
@@ -12,8 +12,9 @@ export type AppProps = {
 const cameraStore = new CameraStore();//TODO figure out how to integrate this with Visualizer
 
 const App = (props:AppProps) => {
-    const { opacity } = useControls({
+    const { flat, opacity } = useControls({
         opacity: { value: 50, min: 0, max: 100, step: 5 },
+        flat: true
     });
 
     useEffect(() => {
@@ -25,6 +26,10 @@ const App = (props:AppProps) => {
     useEffect(() => {
         mainStore.visualizerStore.setOpacity(opacity)
     }, [opacity]);
+
+    useEffect(() => {
+        mainStore.visualizerStore.setFlatMaterials(flat)
+    }, [flat]);
 
     const location = window.location;
 

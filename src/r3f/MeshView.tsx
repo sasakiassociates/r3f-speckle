@@ -1,17 +1,24 @@
 import { Html } from "@react-three/drei";
 import { cullSpaces } from "../utils.ts";
-import { Material, MeshStandardMaterial, Vector3 } from "three";
+import { Material, MeshBasicMaterial, MeshStandardMaterial, Vector3 } from "three";
 import type { NodeDataWrapper } from "../speckle";
 import type { MeshProps } from "@react-three/fiber";
 
-export type MaterialAttributes = { color: string, opacity?: number, transparent?: boolean };
+export type MaterialAttributes = { color: string, opacity?: number, transparent?: boolean, flat?: boolean };
 
 const generateMaterialKey = (props: MaterialAttributes) => JSON.stringify(props);
 
+//another r3f method is to share materials via useResource https://codesandbox.io/p/sandbox/billowing-monad-bgnnt?file=%2Fsrc%2FApp3d.tsx
 const getMaterial = (materialProps: MaterialAttributes, materialCache: { [key: string]: Material }) => {
     const key = generateMaterialKey(materialProps);
     if (!materialCache[key]) {
-        materialCache[key] = new MeshStandardMaterial(materialProps);
+        let newMaterial;
+        if (materialProps.flat) {
+            newMaterial = new MeshBasicMaterial(materialProps);
+        } else {
+            newMaterial = new MeshStandardMaterial(materialProps);
+        }
+        materialCache[key] = newMaterial;
     }
     return materialCache[key];
 }
