@@ -1,26 +1,26 @@
 import { CameraControls, OrbitControls } from '@react-three/drei';
 import { PlanViewOrbitControls } from './PlanViewOrbitControls.tsx';
-import { Vector3 } from 'three';
+import type { Material } from 'three';
 import { useControls } from 'leva';
 import { speckleStore, NodeDataWrapper } from '../speckle';
 import { LineBuffer } from './LineBuffer';
 import BaseImage, { type BaseImageProps } from './BaseImage';
-import { useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Html } from '@react-three/drei';
 import { cullSpaces } from '../utils';
-import { toJS } from 'mobx';
+import { useRef } from "react";
 
 import './SpeckleScene.scss';
+import { type MaterialAttributes, MeshView } from "./MeshView.tsx";
 
-const getMaterialProps = (geometry: NodeDataWrapper): { color: string, opacity?: number, transparent?: boolean } => {
+const getMaterialAttributes = (geometry: NodeDataWrapper): MaterialAttributes => {
     const { visualizerStore } = speckleStore;
     if (!visualizerStore) return { color: '#ffffff' };
 
     let id = visualizerStore.getId(geometry);
 
     let colorState = visualizerStore.colorById[id];
-    if (colorState.opacity < 1) {
+
+    if (colorState && colorState.opacity < 1) {
         return {
             ...colorState,
             transparent: true,
@@ -33,11 +33,9 @@ const nameGeometry = (geometry: NodeDataWrapper) => {
     const { visualizerStore } = speckleStore;
     if (!visualizerStore) return '-';
     let id = visualizerStore.getId(geometry);
-    return visualizerStore.nameById[id] || '';
+    const ans = visualizerStore.nameById[id] || '';
+    return cullSpaces(ans);
 };
-
-//TODO REFACTOR can't have activeFloorId in generic r3f
-//pass baseImage: {url, rect} instead
 
 type SceneProps = {
     planViewMode?: boolean,
@@ -46,6 +44,9 @@ type SceneProps = {
 
 function Scene(props: SceneProps) {
     const { baseImages, planViewMode } = props;
+
+    //we get better efficiency if we share materials between meshes
+    const materialCache = useRef<{ [key: string]: Material }>({});
 
     const { lightPosition, lightIntensity } = useControls({
         lightPosition: { value: [3, 5, 2], label: 'vec' },
@@ -58,7 +59,6 @@ function Scene(props: SceneProps) {
         selfShading: false,
     });
 
-
     return (
         <>
             <ambientLight color={'#999'}/>
@@ -68,32 +68,17 @@ function Scene(props: SceneProps) {
                 <OrbitControls enableRotate={true}/>
             }
             {displayMeshes &&
-                speckleStore.includedMeshes.map(geometry => {
-                    geometry.meshGeometry?.computeBoundingBox();
-                    const center = new Vector3();
-                    geometry.meshGeometry?.boundingBox?.getCenter(center);
-                    return (
-                        <mesh
-                            key={geometry.id}
-                            geometry={geometry.meshGeometry}
-                            castShadow
-                            receiveShadow={selfShading}
-                        >
-                            {/* filled COLOR */}
-                            {}
-                            <meshStandardMaterial {...getMaterialProps(geometry)}/>
-                            {/* each unit's name appears as a label*/}
-                            {nameGeometry(geometry) && (
-                                <Html key={`label-${geometry.id}`} position={center}>
-                                    {/* Remove the spaces in the string, or the line will break */}
-                                    <span className={'unit-tag'}>
-                                        {cullSpaces(nameGeometry(geometry))}
-                                    </span>
-                                </Html>
-                            )}
-                        </mesh>
-                    );
-                })}
+                speckleStore.includedMeshes.map(geometry =>
+                    <MeshView
+                        key={geometry.id}
+                        geometryWrapper={geometry}
+                        materialAttributes={getMaterialAttributes(geometry)}
+                        materialCache={materialCache.current}
+                        castShadow
+                        receiveShadow={selfShading}
+                        label={nameGeometry(geometry)}
+                    />
+                )}
             {displayLines &&
                 speckleStore.includedLines.map(geometry => {
                     return <LineBuffer key={geometry.id} bufferGeometry={geometry.lineGeometry}/>;

@@ -95,3 +95,20 @@ Include the Viewer. Currently a "global" `speckleStore` object is used to connec
     ]}/>
 ```
 Note: use of the global speckleStore is likely to change if we need more sophisticated, composable integrations with multiple viewers. 
+
+
+### Dev Notes
+
+#### Publishing local 
+(total time <1 minute)
+
+Here:
+1. Run esbuild
+2. Increment build num e.g. `-b.3` 
+3. Run localPub
+
+In target solution:
+1. Search and replace in package.json
+2. Run `pnpm install`
+3. Delete older build folders folders (optional)
+4. Restart dev server

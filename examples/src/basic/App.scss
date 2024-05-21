@@ -1,0 +1,22 @@
+//noinspection CssUnknownTarget
+@import url(https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap);
+
+.App {
+  height: 600px;
+  font-family: 'Inter', sans-serif;
+}
+
+.error-message {
+  background: #dd8644;
+  border: 1px solid darkred;
+  padding: 10px;
+}
+
+.canvas-parent {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border: 1px solid blue;
+}
