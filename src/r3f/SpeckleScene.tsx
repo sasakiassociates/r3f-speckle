@@ -14,32 +14,50 @@ import { EffectComposer, Outline, Select, Selection } from "@react-three/postpro
 import './SpeckleScene.scss';
 import { type MaterialAttributes, MeshView } from "./MeshView.tsx";
 
-const MeshListSelectView = ({ selectIsEnabled, meshes, materialCache, receiveShadow } : { selectIsEnabled:boolean, meshes:NodeDataWrapper[], materialCache:{ [key: string]: Material }, receiveShadow: boolean }) => (
-    <Select enabled={selectIsEnabled}>
-        {meshes.map(geometry => (
+type MeshListSelectViewProps = {
+    selectIsEnabled: boolean,
+    allMeshes: NodeDataWrapper[],
+    visibleMeshes: NodeDataWrapper[],
+    materialCache: { [key: string]: Material },
+    receiveShadow: boolean
+};
+
+//NOTE: we use allMeshes and visibleMeshes because it's better to not mount/unmount components for fast updates - so we mount them all, but control visibility
+//https://docs.pmnd.rs/react-three-fiber/advanced/pitfalls#don't-mount-indiscriminately
+const MeshListSelectView = observer(({ selectIsEnabled, allMeshes, visibleMeshes, materialCache, receiveShadow } : MeshListSelectViewProps) => {
+    const { visualizerStore } = speckleStore;
+    let colorById:  { [id: string]: { color:string, opacity:number, flat?:boolean } } = {}
+    if (visualizerStore) {
+        colorById = visualizerStore.colorById;
+    }
+    return <Select enabled={selectIsEnabled}>
+        {allMeshes.map(geometry => (
             <MeshView
                 onClick={(e) => {
-                    geometry.events.broadcast('click', {event: e});
+                    console.log('MESH VIEW ONLCLICK');
+                    e.stopPropagation();
+                    geometry.events.broadcast('click', { event: e });
                 }}
                 key={geometry.id}
                 geometryWrapper={geometry}
-                materialAttributes={getMaterialAttributes(geometry)}
+                materialAttributes={getMaterialAttributes(geometry, colorById)}
                 materialCache={materialCache}
                 castShadow
                 receiveShadow={receiveShadow}
+                visible={visibleMeshes.indexOf(geometry) >= 0}
                 label={nameGeometry(geometry)}
             />
         ))}
     </Select>
-);
+});
 
-const getMaterialAttributes = (geometry: NodeDataWrapper): MaterialAttributes => {
+const getMaterialAttributes = (geometry: NodeDataWrapper, colorById:  { [id: string]: { color:string, opacity:number, flat?:boolean } }): MaterialAttributes => {
     const { visualizerStore } = speckleStore;
     if (!visualizerStore) return { color: '#ffffff' };
 
     let id = visualizerStore.getId(geometry);
 
-    let colorState = visualizerStore.colorById[id];
+    let colorState = colorById[id];
 
     if (colorState && colorState.opacity < 1) {
         return {
@@ -99,13 +117,15 @@ function Scene(props: SceneProps) {
                 </EffectComposer>
                 <MeshListSelectView
                     selectIsEnabled={true}
-                    meshes={speckleStore.selectedMeshes}
+                    allMeshes={speckleStore.includedMeshes}
+                    visibleMeshes={speckleStore.selectedMeshes}
                     materialCache={materialCache.current}
                     receiveShadow={selfShading}
                 />
                 <MeshListSelectView
                     selectIsEnabled={false}
-                    meshes={speckleStore.unselectedMeshes}
+                    allMeshes={speckleStore.includedMeshes}
+                    visibleMeshes={speckleStore.unselectedMeshes}
                     materialCache={materialCache.current}
                     receiveShadow={selfShading}
                 />

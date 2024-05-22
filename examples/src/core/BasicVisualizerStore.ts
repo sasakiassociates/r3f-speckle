@@ -73,6 +73,7 @@ export class BasicVisualizerStore extends VisualizerStore {
 
     @override
     get colorById(): { [id: string]: { color: string, opacity: number } } {
+        console.log('RECOMPUTE colorById')
         const ans: { [id: string]: { color: string, opacity: number, flat?: boolean } } = {};
         for (let id in this.materialNamesByElementId) {
             ans[id] = this.color(this.materialNamesByElementId[id])
