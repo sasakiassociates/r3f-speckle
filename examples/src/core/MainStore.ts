@@ -1,4 +1,4 @@
-import { computed, makeObservable, observable, runInAction } from "mobx";
+import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { BasicVisualizerStore } from "./BasicVisualizerStore.ts";
 import { BasicSpeckleLoader } from "./BasicSpeckleLoader.ts";
 import { BasicDataManager } from "./BasicDataManager.ts";
@@ -34,14 +34,21 @@ export class MainStore {
         });
     }
 
-    loadFromUrlParams() {
+    async loadFromUrlParams() {
         const { urlParams } = this;
         this.server = urlParams.get('server') || settings.server;
         const streamId = urlParams.get('streamId');
         const commitObjectId = urlParams.get('commitObjectId');
 
         if (!streamId || !commitObjectId) return;
-        this.connectSpeckle(this.server, streamId, commitObjectId);
+        try {
+            await this.connectSpeckle(this.server, streamId, commitObjectId);
+        }
+        catch (e:unknown) {
+            if (e instanceof Error) {
+                this.reportConnectionError(e.message);
+            }
+        }
     }
 
     @computed
@@ -50,13 +57,18 @@ export class MainStore {
         return new URLSearchParams(queryString);
     }
 
+    @action
+    reportConnectionError(error: string) {
+        this.connectionError = error;
+    }
+
     async connectSpeckle(server: string, streamId: string, commitObjectId: string) {
         const { urlParams } = this;
 
         const authToken = urlParams.get('AuthToken') || localStorage.getItem('AuthToken');
 
         if (!authToken) {
-            runInAction(()=> this.connectionError = 'No AuthToken provided, see https://www.notion.so/sasaki-associates/Speckle-AuthToken-for-Magpie-Web-d3e224b70e6040dd99791d0781791734?pvs=4')
+            this.reportConnectionError('No AuthToken provided, see https://www.notion.so/sasaki-associates/Speckle-AuthToken-for-Magpie-Web-d3e224b70e6040dd99791d0781791734?pvs=4');
             return;
         }
         if (streamId && authToken && commitObjectId) {

@@ -6,7 +6,7 @@ export class BasicSpeckleLoader extends SpeckleLoader {
     speckleDataManager: SpeckleDataManager;
 
     constructor(speckleDataManager: SpeckleDataManager, visualizerStore: BasicVisualizerStore) {
-        super();
+        super(false);
         this.speckleDataManager = speckleDataManager;
         this.speckleDataManager.speckleLoader = this;
 
