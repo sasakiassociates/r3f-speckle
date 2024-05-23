@@ -12,10 +12,8 @@ import {
 import { Line2, LineMaterial, LineSegmentsGeometry } from 'three-stdlib';
 
 import { useControls } from 'leva';
-import SpeckleScene from "./SpeckleScene";
+import SpeckleScene, { type CameraController } from "./SpeckleScene";
 import type { BaseImageProps } from "./BaseImage.tsx";
-import type { EventEmitter } from "@strategies/react-events";
-import type { ViewerZoomEvents } from "./hooks/useZoomControls.ts";
 
 type LineProps = {
     bufferGeometry: BufferGeometry;
@@ -52,26 +50,14 @@ const BufferLine = ({ bufferGeometry }: LineProps) => {
     return <primitive object={line}/>;
 };
 
-// const SpeckleStage = ()=> {//apply speckle transforms to scale and rotate speckle content for display in our scene
-//     return <primitive />
-// }
-
-export type CameraStoreAttributes = {
-    fov: number,
-    farClip: number
-    setCamera(camera: (OrthographicCamera | PerspectiveCamera)): void;
-}
-
 //TODO why are base images treated differently from meshes and lines? I guess they currently are manually specified
 //but when they come in from Speckle we should treat them like other Speckle elements
 type ViewerProps = {
-    eventEmitter: EventEmitter<ViewerZoomEvents>,
-    cameraStore: CameraStoreAttributes,
+    cameraController: CameraController,
     baseImages: BaseImageProps[]
-    planViewMode?: boolean
 };
 export const Viewer = observer((props: ViewerProps) => {
-    const { cameraStore, eventEmitter, baseImages, planViewMode } = props;
+    const { cameraController, baseImages } = props;
     // let palette = fillColors();
     //keep track of how many times this has rendered
     const renderCount = useRef(0);
@@ -93,8 +79,8 @@ export const Viewer = observer((props: ViewerProps) => {
             <Canvas
                 shadows
                 // defaultCamera
-                camera={{ position: [0, 60, 0], fov: cameraStore.fov, far: cameraStore.farClip }}
-                onCreated={({ camera }) => cameraStore?.setCamera(camera)}
+                // camera={{ position: [0, 60, 0], fov: cameraStore.fov, far: cameraStore.farClip }}
+                // onCreated={({ camera }) => cameraStore?.setCamera(camera)}
                 flat={!toneMapping}
             >
                 {/*<ambientLight color={'#cccccc'}/>*/}
@@ -107,7 +93,7 @@ export const Viewer = observer((props: ViewerProps) => {
                 {/*<ShadowScene minimumGroundY={-2}/>*/}
                 {/*<LayersTest/>*/}
                 {/*<ShadowGroupScene/>*/}
-                <SpeckleScene eventEmitter={eventEmitter} baseImages={baseImages} planViewMode={planViewMode}/>
+                <SpeckleScene cameraController={cameraController} baseImages={baseImages}/>
             </Canvas>
         </div>
     );

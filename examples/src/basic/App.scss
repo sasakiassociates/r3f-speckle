@@ -29,3 +29,9 @@
   padding: 0.2em;
   border: 1px solid #9f919e;
 }
+
+.IconButton {
+  &.selected {
+    background: pink;
+  }
+}

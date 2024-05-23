@@ -10,5 +10,5 @@ export * from "./ShadowScene";
 export * from "./SpeckleScene";
 export * from "./Viewer";
 
-export {type ViewModeEvents} from './hooks/useViewModeControls'
+export {type ViewModeEvents} from './CameraSwitcher'
 export {type ViewerZoomEvents} from './hooks/useZoomControls'

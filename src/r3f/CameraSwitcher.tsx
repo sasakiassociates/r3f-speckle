@@ -4,21 +4,32 @@ import { CameraControls } from '@react-three/drei';
 import { PerspectiveCamera, OrthographicCamera } from 'three';
 import { type EventEmitter, useEventSubscription } from "@strategies/react-events";
 import { computeBoundingSphere } from "../three";
-import type { ViewModeEvents } from "./hooks/useViewModeControls.ts";
+import CameraControlsLib from 'camera-controls';
+import type { MouseButtons } from "camera-controls/dist/types";
 
-// Define the props interface
-interface CameraSwitcherProps {
-    planViewMode: boolean;
-    eventEmitter:EventEmitter<ViewModeEvents>
+export type ViewModeEvents = {
+    setView: 'top' | 'side' | '45',//handled in CameraSwitcher
 }
 
-export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutRef<CameraSwitcherProps> & React.RefAttributes<CameraControls>> = forwardRef<CameraControls, CameraSwitcherProps>(({ planViewMode, eventEmitter }, ref) => {
+type CameraSwitcherProps = {
+    eventEmitter:EventEmitter<ViewModeEvents>,
+    settings: CameraControlSettings
+}
 
+export type CameraControlSettings = {
+    orthoMode: boolean;
+    useSimplifiedPanning: boolean
+}
+
+export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutRef<CameraSwitcherProps> & React.RefAttributes<CameraControls>> = forwardRef<CameraControls, CameraSwitcherProps>(({ settings, eventEmitter }, ref) => {
+
+    const { orthoMode, useSimplifiedPanning } = settings;
     const { set, camera } = useThree();
-    const controlsRef = useRef<CameraControls>(null);
+    const perspControlsRef  = useRef<CameraControls>(null);
+    const orthoControlsRef   = useRef<CameraControls>(null);
 
     // Refs to store the camera instances
-    const perspCamRef = useRef<PerspectiveCamera>(new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000));
+    const perspCamRef = useRef<PerspectiveCamera>(new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000));
     const orthoCamRef = useRef<OrthographicCamera>(new OrthographicCamera(
         window.innerWidth / -2,
         window.innerWidth / 2,
@@ -28,55 +39,93 @@ export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutR
         10000
     ));
 
-    useImperativeHandle(ref, () => controlsRef.current!);
-
+    useImperativeHandle(ref, () => orthoMode ? orthoControlsRef.current! : perspControlsRef.current!);
 
     useEventSubscription(eventEmitter, 'setView', (view) => {
+        //note that these do not frame the view. they need to be combined with a zoomExtents event
         if (view === '45') {
-            if (planViewMode) {
-                // Configure the orthographic camera if needed
-                const aspect = window.innerWidth / window.innerHeight;
-                const frustumSize = 100;
-                const orthoCamera = orthoCamRef.current;
-                orthoCamera.left = frustumSize * aspect / -2;
-                orthoCamera.right = frustumSize * aspect / 2;
-                orthoCamera.top = frustumSize / 2;
-                orthoCamera.bottom = frustumSize / -2;
-                orthoCamera.updateProjectionMatrix();
-                orthoCamera.position.set(0, 0, 500);
-                orthoCamera.lookAt(0, 0, 0);
-                set({ camera: orthoCamera });
-                if (controlsRef.current) {
-                    controlsRef.current.update(1);//Note sure what to use for delta
-                }
+            if (orthoMode) {
+                orthoControlsRef.current?.moveTo(10,5,10, true)
+                orthoControlsRef.current?.lookInDirectionOf(0,0,0, true)
+                //Not sure why we need the dolly, but it fixes a positioning issue
+                orthoControlsRef.current?.dolly(-5);
+
             } else {
-                // Configure the perspective camera if needed
-                const perspCamera = perspCamRef.current;
-                // perspCamera.aspect = window.innerWidth / window.innerHeight;
-                // perspCamera.updateProjectionMatrix();
-                // perspCamera.position.set(0, 0, 5);
-                // perspCamera.lookAt(0, 0, 0);
-                set({ camera: perspCamera });
+                perspControlsRef.current?.moveTo(10,5,10, true)
+                perspControlsRef.current?.lookInDirectionOf(0,0,0, true)
+                perspControlsRef.current?.dolly(-5);
+            }
+        }
+        if (view === 'top') {
+            if (orthoMode) {
+                orthoControlsRef.current?.moveTo(0,1,0, true)
+                orthoControlsRef.current?.lookInDirectionOf(0,0,0, true)
+                orthoControlsRef.current?.dolly(-5);
+
+            } else {
+                perspControlsRef.current?.moveTo(0,1,0, true)
+                perspControlsRef.current?.lookInDirectionOf(0,0,0, true)
+                perspControlsRef.current?.dolly(-5);
+
+            }
+        }
+        if (view === 'side') {
+            if (orthoMode) {
+                orthoControlsRef.current?.moveTo(1,0,0, true)
+                orthoControlsRef.current?.lookInDirectionOf(0,0,0, true)
+                orthoControlsRef.current?.dolly(-5);
+
+            } else {
+                perspControlsRef.current?.moveTo(1,0,0, true)
+                perspControlsRef.current?.lookInDirectionOf(0,0,0, true)
+                perspControlsRef.current?.dolly(-5);
+
             }
         }
     });
 
 
     useEffect(() => {
-        if (planViewMode) {
+        if (orthoMode) {
             const orthoCamera = orthoCamRef.current;
             set({ camera: orthoCamera });
         } else {
             const perspCamera = perspCamRef.current;
             set({ camera: perspCamera });
         }
-    }, [planViewMode, set]);
+    }, [orthoMode, set]);
 
-    useEffect(() => {
-        if (controlsRef.current) {
-            controlsRef.current.update(1);//Note sure what to use for delta
+    // useEffect(() => {
+    //     if (controlsRef.current) {
+    //         controlsRef.current.update(1);//Note sure what to use for delta
+    //     }
+    // }, [camera]);
+
+    let orthoButtons: MouseButtons = {
+        left: CameraControlsLib.ACTION.ROTATE,
+        middle: CameraControlsLib.ACTION.ZOOM,
+        right: CameraControlsLib.ACTION.TRUCK,
+        wheel: CameraControlsLib.ACTION.ZOOM,
+    };
+    if (useSimplifiedPanning) {
+        orthoButtons = {
+            left: CameraControlsLib.ACTION.TRUCK,
+            middle: CameraControlsLib.ACTION.ZOOM,
+            right: CameraControlsLib.ACTION.ROTATE,
+            wheel: CameraControlsLib.ACTION.ZOOM,
         }
-    }, [camera]);
-
-    return <CameraControls ref={controlsRef} />;
+    }
+    return <>
+        <CameraControls
+            ref={perspControlsRef}
+            camera={perspCamRef.current}
+            enabled={!orthoMode}
+        />
+        <CameraControls
+            ref={orthoControlsRef}
+            camera={orthoCamRef.current}
+            enabled={orthoMode}
+            mouseButtons={orthoButtons}
+        />
+    </>;
 });

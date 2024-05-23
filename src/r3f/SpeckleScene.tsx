@@ -12,8 +12,7 @@ import { type MaterialAttributes, MeshView } from "./MeshView.tsx";
 import './SpeckleScene.scss';
 import { useZoomControls, type ViewerZoomEvents } from "./hooks/useZoomControls.ts";
 import type { EventEmitter } from "@strategies/react-events";
-import { useViewModeControls, type ViewModeEvents } from "./hooks/useViewModeControls.ts";
-import { CameraSwitcher } from "./CameraSwitcher.tsx";
+import { type CameraControlSettings, CameraSwitcher, type ViewModeEvents } from "./CameraSwitcher.tsx";
 import type { CameraControls } from "@react-three/drei";
 
 type MeshListSelectViewProps = {
@@ -78,13 +77,14 @@ const nameGeometry = (geometry: NodeDataWrapper) => {
     return cullSpaces(ans);
 };
 
+export type CameraController = EventEmitter<ViewerZoomEvents & ViewModeEvents> & { settings: CameraControlSettings };
 type SceneProps = {
-    eventEmitter: EventEmitter<ViewerZoomEvents & ViewModeEvents>,
+    cameraController: CameraController,
     baseImages?: BaseImageProps[]
 };
 
 function Scene(props: SceneProps) {
-    const { baseImages, eventEmitter } = props;
+    const { baseImages, cameraController } = props;
 
     //we get better efficiency if we share materials between meshes
     const materialCache = useRef<{ [key: string]: Material }>({});
@@ -102,14 +102,13 @@ function Scene(props: SceneProps) {
 
     const controlsRef = useRef<CameraControls>(null);
 
-    useZoomControls(controlsRef, eventEmitter, speckleStore.selectedMeshes);
-    const [planViewMode] = useViewModeControls(eventEmitter);
+    useZoomControls(controlsRef, cameraController, speckleStore.selectedMeshes);
 
     return (
         <>
             <ambientLight color={'#999'}/>
             <directionalLight position={lightPosition} intensity={lightIntensity}/>
-            <CameraSwitcher eventEmitter={eventEmitter} planViewMode={planViewMode} ref={controlsRef}/>
+            <CameraSwitcher eventEmitter={cameraController} settings={cameraController.settings} ref={controlsRef}/>
             <Selection>
                 <EffectComposer autoClear={false}>
                     <Outline

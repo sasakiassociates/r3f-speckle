@@ -2,7 +2,8 @@ import { observer } from 'mobx-react-lite';
 import './App.scss';
 import { useEffect, useRef } from "react";
 import { mainStore } from "../core/MainStore.ts";
-import { Viewer, type ViewerZoomEvents, ViewModeEvents } from "@strategies/r3f-speckle/r3f";
+import { Viewer } from "@strategies/r3f-speckle/r3f";
+import type { ViewerZoomEvents, ViewModeEvents } from "@strategies/r3f-speckle/r3f";
 import { useControls } from 'leva';
 import { CameraStore } from "@strategies/r3f-speckle/store";
 import { IconButton } from "@strategies/ui";
@@ -12,14 +13,15 @@ import {
     MagnifyingGlassPlus as ZoomInIcon,
     MagnifyingGlassMinus as ZoomOutIcon,
     Eye as PerspectiveIcon,
-    CodesandboxLogo  as OrthoIcon,
+    CodesandboxLogo as OrthoIcon,
+    BoundingBox as PlanIcon,
+    Rows as SideIcon,
+    Stack as Icon45,
 } from "@phosphor-icons/react";
 import { EventEmitter } from "@strategies/react-events";
-import { action, makeObservable, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 
 export type AppProps = {};
-
-const cameraStore = new CameraStore();//TODO figure out how to integrate this with Visualizer
 
 class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents> {
     constructor() {
@@ -28,21 +30,30 @@ class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents> {
     }
 
     @observable
-    zoomStrength = 2.5
+    orthoMode = false;
 
     @observable
-    perspectiveMode = true;
+    useSimplifiedPanning = false;
+
+    @observable
+    zoomStrength = 2.5;
+
+    @computed
+    get settings() {
+        return {
+            orthoMode: this.orthoMode,
+            useSimplifiedPanning: this.useSimplifiedPanning,
+        }
+    }
 
     @action
     setOrtho() {
-        this.perspectiveMode = false;
-        this.emit('setOrtho');//TODO isn't it better to just observe 'perspectiveMode'?
+        this.orthoMode = true;
     }
 
     @action
     setPerspective() {
-        this.perspectiveMode = true;
-        this.emit('setPerspective')
+        this.orthoMode = false;
     }
 
     zoomExtents() {
@@ -63,22 +74,39 @@ class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents> {
 
     setView(view: 'top' | 'side' | '45') {
         this.emit('setView', view);
+        this.recenter();
+    }
+
+    recenter() {
+        setTimeout(() => {
+            this.emit('zoomExtents');
+        }, 300);
     }
 }
 
 const App = (props: AppProps) => {
     const mapControls = useRef(new MapControls());
 
-    const { flat, opacity } = useControls({
+    const { flat, opacity, simplifiedPanning } = useControls({
         opacity: { value: 50, min: 0, max: 100, step: 5 },
-        flat: true
+        flat: true,
+        simplifiedPanning: false
     });
 
     useEffect(() => {
         if (!mainStore.isConnecting) {
-            mainStore.loadFromUrlParams();
+            (async () => {
+                await mainStore.loadFromUrlParams();
+                setTimeout(()=> {
+                    mapControls.current.zoomExtents()
+                }, 100)
+            })();
         }
     }, []);
+
+    useEffect(() => {
+        mapControls.current.useSimplifiedPanning = simplifiedPanning;
+    }, [simplifiedPanning]);
 
     useEffect(() => {
         mainStore.visualizerStore.setOpacity(opacity)
@@ -109,11 +137,8 @@ const App = (props: AppProps) => {
 
         {mainStore.connectedToStream &&
             <div>
-
                 <Viewer
-                    eventEmitter={mapControls.current}
-                    planViewMode={false}
-                    cameraStore={cameraStore}
+                    cameraController={mapControls.current}
                     baseImages={[
                         // { imageUrl: baseImgUrl, rectangle: baseImgRect }
                     ]}/>
@@ -130,14 +155,20 @@ const App = (props: AppProps) => {
                     <IconButton onClick={() => mapControls.current.zoomOut()}>
                         <ZoomOutIcon/>
                     </IconButton>
-                    <IconButton onClick={() => mapControls.current.setOrtho()}>
+                    <IconButton className={mapControls.current.orthoMode ? 'selected' : ''} onClick={() => mapControls.current.setOrtho()}>
                         <OrthoIcon/>
                     </IconButton>
-                    <IconButton onClick={() => mapControls.current.setPerspective()}>
+                    <IconButton className={mapControls.current.orthoMode ? '' : 'selected'} onClick={() => mapControls.current.setPerspective()}>
                         <PerspectiveIcon/>
                     </IconButton>
                     <IconButton onClick={() => mapControls.current.setView('45')}>
-                        <PerspectiveIcon/>
+                        <Icon45/>
+                    </IconButton>
+                    <IconButton onClick={() => mapControls.current.setView('top')}>
+                        <PlanIcon/>
+                    </IconButton>
+                    <IconButton onClick={() => mapControls.current.setView('side')}>
+                        <SideIcon/>
                     </IconButton>
                 </div>
             </div>

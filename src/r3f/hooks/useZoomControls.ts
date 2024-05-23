@@ -7,6 +7,7 @@ import { type EventEmitter, useEventSubscription } from "@strategies/react-event
 import type { NodeDataWrapper } from "../../speckle";
 import type { CameraControls } from "@react-three/drei";
 import type { RefObject } from "react";
+import { OrthographicCamera } from "three";
 
 export type ViewerZoomEvents = {
     zoomExtents: void,
@@ -34,11 +35,21 @@ export const useZoomControls = (controls:RefObject<CameraControls>, eventEmitter
     });
 
     useEventSubscription(eventEmitter, 'zoomIn', (amount: number) => {
-        controls.current?.dolly(amount, true)
+        const camera = controls.current?.camera;
+        if (camera instanceof OrthographicCamera) {
+            controls.current?.zoom(camera.zoom / 2, true)
+        } else {
+            controls.current?.dolly(amount, true)
+        }
     });
 
     useEventSubscription(eventEmitter, 'zoomOut', (amount: number) => {
-        controls.current?.dolly(-amount, true)
+        const camera = controls.current?.camera;
+        if (camera instanceof OrthographicCamera) {
+            controls.current?.zoom(-camera.zoom / 2, true)
+        } else {
+            controls.current?.dolly(-amount, true)
+        }
     });
 
 };
