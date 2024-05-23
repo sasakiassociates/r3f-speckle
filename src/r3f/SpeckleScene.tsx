@@ -1,5 +1,3 @@
-import { CameraControls, OrbitControls } from '@react-three/drei';
-import { PlanViewOrbitControls } from './PlanViewOrbitControls.tsx';
 import type { Material } from 'three';
 import { useControls } from 'leva';
 import { speckleStore, NodeDataWrapper } from '../speckle';
@@ -10,9 +8,13 @@ import { cullSpaces } from '../utils';
 import { useRef } from "react";
 import { EffectComposer, Outline, Select, Selection } from "@react-three/postprocessing";
 // import { BlendFunction } from "postprocessing";
-
-import './SpeckleScene.scss';
 import { type MaterialAttributes, MeshView } from "./MeshView.tsx";
+import './SpeckleScene.scss';
+import { useZoomControls, type ViewerZoomEvents } from "./hooks/useZoomControls.ts";
+import type { EventEmitter } from "@strategies/react-events";
+import { useViewModeControls, type ViewModeEvents } from "./hooks/useViewModeControls.ts";
+import { CameraSwitcher } from "./CameraSwitcher.tsx";
+import type { CameraControls } from "@react-three/drei";
 
 type MeshListSelectViewProps = {
     selectIsEnabled: boolean,
@@ -77,12 +79,12 @@ const nameGeometry = (geometry: NodeDataWrapper) => {
 };
 
 type SceneProps = {
-    planViewMode?: boolean,
+    eventEmitter: EventEmitter<ViewerZoomEvents & ViewModeEvents>,
     baseImages?: BaseImageProps[]
 };
 
 function Scene(props: SceneProps) {
-    const { baseImages, planViewMode } = props;
+    const { baseImages, eventEmitter } = props;
 
     //we get better efficiency if we share materials between meshes
     const materialCache = useRef<{ [key: string]: Material }>({});
@@ -98,14 +100,16 @@ function Scene(props: SceneProps) {
         selfShading: false,
     });
 
+    const controlsRef = useRef<CameraControls>(null);
+
+    useZoomControls(controlsRef, eventEmitter, speckleStore.selectedMeshes);
+    const [planViewMode] = useViewModeControls(eventEmitter);
+
     return (
         <>
             <ambientLight color={'#999'}/>
             <directionalLight position={lightPosition} intensity={lightIntensity}/>
-            {planViewMode ?
-                <PlanViewOrbitControls/> :
-                <OrbitControls enableRotate={true}/>
-            }
+            <CameraSwitcher eventEmitter={eventEmitter} planViewMode={planViewMode} ref={controlsRef}/>
             <Selection>
                 <EffectComposer autoClear={false}>
                     <Outline

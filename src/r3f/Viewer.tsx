@@ -14,6 +14,8 @@ import { Line2, LineMaterial, LineSegmentsGeometry } from 'three-stdlib';
 import { useControls } from 'leva';
 import SpeckleScene from "./SpeckleScene";
 import type { BaseImageProps } from "./BaseImage.tsx";
+import type { EventEmitter } from "@strategies/react-events";
+import type { ViewerZoomEvents } from "./hooks/useZoomControls.ts";
 
 type LineProps = {
     bufferGeometry: BufferGeometry;
@@ -63,18 +65,20 @@ export type CameraStoreAttributes = {
 //TODO why are base images treated differently from meshes and lines? I guess they currently are manually specified
 //but when they come in from Speckle we should treat them like other Speckle elements
 type ViewerProps = {
+    eventEmitter: EventEmitter<ViewerZoomEvents>,
     cameraStore: CameraStoreAttributes,
     baseImages: BaseImageProps[]
     planViewMode?: boolean
 };
 export const Viewer = observer((props: ViewerProps) => {
-    const { cameraStore, baseImages, planViewMode } = props;
+    const { cameraStore, eventEmitter, baseImages, planViewMode } = props;
     // let palette = fillColors();
     //keep track of how many times this has rendered
     const renderCount = useRef(0);
     const { toneMapping } = useControls({
         toneMapping: false,
     });
+
     renderCount.current++;
     const nextColor = () => {
         // if (palette.length === 0) {
@@ -103,7 +107,7 @@ export const Viewer = observer((props: ViewerProps) => {
                 {/*<ShadowScene minimumGroundY={-2}/>*/}
                 {/*<LayersTest/>*/}
                 {/*<ShadowGroupScene/>*/}
-                <SpeckleScene baseImages={baseImages} planViewMode={planViewMode}/>
+                <SpeckleScene eventEmitter={eventEmitter} baseImages={baseImages} planViewMode={planViewMode}/>
             </Canvas>
         </div>
     );

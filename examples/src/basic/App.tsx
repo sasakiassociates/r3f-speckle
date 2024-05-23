@@ -1,18 +1,74 @@
 import { observer } from 'mobx-react-lite';
 import './App.scss';
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { mainStore } from "../core/MainStore.ts";
-import { Viewer } from "@strategies/r3f-speckle/r3f";
+import { Viewer, type ViewerZoomEvents, ViewModeEvents } from "@strategies/r3f-speckle/r3f";
 import { useControls } from 'leva';
 import { CameraStore } from "@strategies/r3f-speckle/store";
 import { IconButton } from "@strategies/ui";
-import { Horse, Heart, Cube } from "@phosphor-icons/react";
+import {
+    FileMagnifyingGlass as ZoomExtentsIcon,
+    ListMagnifyingGlass as ZoomSelectedIcon,
+    MagnifyingGlassPlus as ZoomInIcon,
+    MagnifyingGlassMinus as ZoomOutIcon,
+    Eye as PerspectiveIcon,
+    CodesandboxLogo  as OrthoIcon,
+} from "@phosphor-icons/react";
+import { EventEmitter } from "@strategies/react-events";
+import { action, makeObservable, observable } from "mobx";
 
 export type AppProps = {};
 
 const cameraStore = new CameraStore();//TODO figure out how to integrate this with Visualizer
 
+class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents> {
+    constructor() {
+        super();
+        makeObservable(this);
+    }
+
+    @observable
+    zoomStrength = 2.5
+
+    @observable
+    perspectiveMode = true;
+
+    @action
+    setOrtho() {
+        this.perspectiveMode = false;
+        this.emit('setOrtho');//TODO isn't it better to just observe 'perspectiveMode'?
+    }
+
+    @action
+    setPerspective() {
+        this.perspectiveMode = true;
+        this.emit('setPerspective')
+    }
+
+    zoomExtents() {
+        this.emit('zoomExtents');
+    }
+
+    zoomToSelected() {
+        this.emit('zoomToSelected');
+    }
+
+    zoomIn() {
+        this.emit('zoomIn', this.zoomStrength);
+    }
+
+    zoomOut() {
+        this.emit('zoomOut', this.zoomStrength);
+    }
+
+    setView(view: 'top' | 'side' | '45') {
+        this.emit('setView', view);
+    }
+}
+
 const App = (props: AppProps) => {
+    const mapControls = useRef(new MapControls());
+
     const { flat, opacity } = useControls({
         opacity: { value: 50, min: 0, max: 100, step: 5 },
         flat: true
@@ -55,13 +111,34 @@ const App = (props: AppProps) => {
             <div>
 
                 <Viewer
+                    eventEmitter={mapControls.current}
                     planViewMode={false}
                     cameraStore={cameraStore}
                     baseImages={[
                         // { imageUrl: baseImgUrl, rectangle: baseImgRect }
                     ]}/>
                 <div className={'toolbar'}>
-                    <IconButton><Cube/></IconButton>
+                    <IconButton onClick={() => mapControls.current.zoomExtents()}>
+                        <ZoomExtentsIcon/>
+                    </IconButton>
+                    <IconButton onClick={() => mapControls.current.zoomToSelected()}>
+                        <ZoomSelectedIcon/>
+                    </IconButton>
+                    <IconButton onClick={() => mapControls.current.zoomIn()}>
+                        <ZoomInIcon/>
+                    </IconButton>
+                    <IconButton onClick={() => mapControls.current.zoomOut()}>
+                        <ZoomOutIcon/>
+                    </IconButton>
+                    <IconButton onClick={() => mapControls.current.setOrtho()}>
+                        <OrthoIcon/>
+                    </IconButton>
+                    <IconButton onClick={() => mapControls.current.setPerspective()}>
+                        <PerspectiveIcon/>
+                    </IconButton>
+                    <IconButton onClick={() => mapControls.current.setView('45')}>
+                        <PerspectiveIcon/>
+                    </IconButton>
                 </div>
             </div>
         }

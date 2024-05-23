@@ -9,3 +9,6 @@ export * from "./ShadowGroupScene";
 export * from "./ShadowScene";
 export * from "./SpeckleScene";
 export * from "./Viewer";
+
+export {type ViewModeEvents} from './hooks/useViewModeControls'
+export {type ViewerZoomEvents} from './hooks/useZoomControls'
