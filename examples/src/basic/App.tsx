@@ -5,7 +5,6 @@ import { mainStore } from "../core/MainStore.ts";
 import { Viewer } from "@strategies/r3f-speckle/r3f";
 import type { ViewerZoomEvents, ViewModeEvents } from "@strategies/r3f-speckle/r3f";
 import { useControls } from 'leva';
-import { CameraStore } from "@strategies/r3f-speckle/store";
 import { IconButton } from "@strategies/ui";
 import {
     FileMagnifyingGlass as ZoomExtentsIcon,
