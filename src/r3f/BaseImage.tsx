@@ -15,12 +15,13 @@ export type Rect = {
 export type BaseImageProps = {
     imageUrl: string;
     rectangle: Rect;
+    y?: number
 }
 
-function BaseImage({ imageUrl, rectangle }: BaseImageProps) {
+function BaseImage({ imageUrl, rectangle, y = -0.35 }: BaseImageProps) {
     const texture = useLoader(TextureLoader, imageUrl);
     return (
-        <Box position={[rectangle.x + rectangle.width / 2, -0.35, rectangle.y - rectangle.height / 2]}
+        <Box position={[rectangle.x + rectangle.width / 2, y, rectangle.y - rectangle.height / 2]}
              scale={[rectangle.width, 0.01, rectangle.height]}>
             <meshBasicMaterial attach="material" map={texture}/>
         </Box>

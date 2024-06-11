@@ -39,8 +39,8 @@ export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutR
         viewport.width / 2,
         viewport.height / 2,
         viewport.height / -2,
-        1,
-        10000
+        5,
+        50000
     ));
 
     useImperativeHandle(ref, () => orthoMode ? orthoControlsRef.current! : perspControlsRef.current!);

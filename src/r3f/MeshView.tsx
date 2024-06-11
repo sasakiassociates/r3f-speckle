@@ -3,6 +3,7 @@ import { cullSpaces } from "../utils.ts";
 import { Material, MeshBasicMaterial, MeshStandardMaterial, Vector3 } from "three";
 import type { NodeDataWrapper } from "../speckle";
 import type { MeshProps, ThreeEvent } from "@react-three/fiber";
+import { DoubleSide } from "three";
 
 export type MaterialAttributes = { color: string, opacity?: number, transparent?: boolean, flat?: boolean };
 
@@ -17,7 +18,7 @@ const getMaterial = (materialProps: MaterialAttributes, materialCache: { [key: s
         if (flat) {
             newMaterial = new MeshBasicMaterial(matProps);
         } else {
-            newMaterial = new MeshStandardMaterial(matProps);
+            newMaterial = new MeshStandardMaterial({side: DoubleSide, ...matProps, });
         }
         materialCache[key] = newMaterial;
     }

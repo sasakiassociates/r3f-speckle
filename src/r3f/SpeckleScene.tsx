@@ -149,8 +149,9 @@ function Scene(props: SceneProps) {
                 speckleStore.includedBaseImages.map(wrapper => {
                     const metadata = wrapper.metadata!;
                     const imageUrl: string = metadata.imageUrl;
+                    const y: number = metadata.y;
                     const rectangle: Rect = metadata.rectangle;
-                    return <BaseImage key={wrapper.id} imageUrl={imageUrl} rectangle={rectangle}/>;
+                    return <BaseImage y={y} key={wrapper.id} imageUrl={imageUrl} rectangle={rectangle}/>;
                 })}
         </>
     );
