@@ -63,9 +63,7 @@ const App = (props: AppProps) => {
             <div>
                 <Viewer
                     cameraController={mapControls.current}
-                    baseImages={[
-                        // { imageUrl: baseImgUrl, rectangle: baseImgRect }
-                    ]}/>
+                    />
                 <Toolbar mapControls={mapControls.current}/>
             </div>
         }

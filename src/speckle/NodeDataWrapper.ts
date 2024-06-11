@@ -2,7 +2,7 @@ import { BufferAttribute, BufferGeometry, Matrix4, Vector3 } from "three";
 import { GeometryConverter } from "./modules/converter/GeometryConverter";
 import { NodeData, TreeNode, WorldTree } from "./modules/tree/WorldTree";
 import Converter from "./modules/converter/Converter";
-import { makeObservable, observable, runInAction } from "mobx";
+import { action, makeObservable, observable, runInAction } from "mobx";
 import { generateUUID } from "../utils";
 import type ObjectLoader from "@speckle/objectloader";
 import type { GeometryData } from "./modules/converter/Geometry";
@@ -40,7 +40,7 @@ export class NodeDataWrapper implements NodeData {
     conversionComplete = false;
 
     @observable
-    metadata?: { [key:string] : string } = {};
+    metadata?: { [key:string] : any } = {};
     constructor(objectLoader: ObjectLoader, data: any, metadata?: { [key:string] : string }) {
         makeObservable(this);
         this.raw = data;
@@ -73,6 +73,10 @@ export class NodeDataWrapper implements NodeData {
 
     }
 
+    @action
+    setMetadata(metadata: { [key:string] : any }) {
+        this.metadata = metadata;
+    }
 
     get children(): TreeNode[] {
         if (!this.tree) return [];

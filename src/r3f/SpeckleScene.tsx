@@ -2,7 +2,7 @@ import type { Material } from 'three';
 import { useControls } from 'leva';
 import { speckleStore, NodeDataWrapper } from '../speckle';
 import { LineBuffer } from './LineBuffer';
-import BaseImage, { type BaseImageProps } from './BaseImage';
+import BaseImage, { type BaseImageProps, type Rect } from './BaseImage';
 import { observer } from 'mobx-react-lite';
 import { cullSpaces } from '../utils';
 import { useRef } from "react";
@@ -25,9 +25,15 @@ type MeshListSelectViewProps = {
 
 //NOTE: we use allMeshes and visibleMeshes because it's better to not mount/unmount components for fast updates - so we mount them all, but control visibility
 //https://docs.pmnd.rs/react-three-fiber/advanced/pitfalls#don't-mount-indiscriminately
-const MeshListSelectView = observer(({ selectIsEnabled, allMeshes, visibleMeshes, materialCache, receiveShadow } : MeshListSelectViewProps) => {
+const MeshListSelectView = observer(({
+                                         selectIsEnabled,
+                                         allMeshes,
+                                         visibleMeshes,
+                                         materialCache,
+                                         receiveShadow
+                                     }: MeshListSelectViewProps) => {
     const { visualizerStore } = speckleStore;
-    let colorById:  { [id: string]: { color:string, opacity:number, flat?:boolean } } = {}
+    let colorById: { [id: string]: { color: string, opacity: number, flat?: boolean } } = {}
     if (visualizerStore) {
         colorById = visualizerStore.colorById;
     }
@@ -52,7 +58,9 @@ const MeshListSelectView = observer(({ selectIsEnabled, allMeshes, visibleMeshes
     </Select>
 });
 
-const getMaterialAttributes = (geometry: NodeDataWrapper, colorById:  { [id: string]: { color:string, opacity:number, flat?:boolean } }): MaterialAttributes => {
+const getMaterialAttributes = (geometry: NodeDataWrapper, colorById: {
+    [id: string]: { color: string, opacity: number, flat?: boolean }
+}): MaterialAttributes => {
     const { visualizerStore } = speckleStore;
     if (!visualizerStore) return { color: '#ffffff' };
 
@@ -79,12 +87,11 @@ const nameGeometry = (geometry: NodeDataWrapper) => {
 
 export type CameraController = EventEmitter<ViewerZoomEvents & ViewModeEvents> & { settings: CameraControlSettings };
 type SceneProps = {
-    cameraController: CameraController,
-    baseImages?: BaseImageProps[]
+    cameraController: CameraController
 };
 
 function Scene(props: SceneProps) {
-    const { baseImages, cameraController } = props;
+    const { cameraController } = props;
 
     //we get better efficiency if we share materials between meshes
     const materialCache = useRef<{ [key: string]: Material }>({});
@@ -138,7 +145,13 @@ function Scene(props: SceneProps) {
                 speckleStore.includedLines.map(geometry => {
                     return <LineBuffer key={geometry.id} bufferGeometry={geometry.lineGeometry}/>;
                 })}
-            {displayBase && baseImages && baseImages.map(b => <BaseImage {...b}/>)}
+            {displayBase &&
+                speckleStore.includedBaseImages.map(wrapper => {
+                    const metadata = wrapper.metadata!;
+                    const imageUrl: string = metadata.imageUrl;
+                    const rectangle: Rect = metadata.rectangle;
+                    return <BaseImage key={wrapper.id} imageUrl={imageUrl} rectangle={rectangle}/>;
+                })}
         </>
     );
 }

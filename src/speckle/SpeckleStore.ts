@@ -1,6 +1,5 @@
-import { action, computed, makeAutoObservable, makeObservable, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 import type { NodeDataWrapper } from "./NodeDataWrapper";
-import type { Rect } from "../r3f";
 import type { VisualizerStore } from "../store";
 
 export class SpeckleStore {
@@ -11,9 +10,7 @@ export class SpeckleStore {
     lines: NodeDataWrapper[] = [];
 
     @observable
-    baseImageRect: Rect & { url?: string } = { x: 0, y: 0, width: 0, height: 0 };
-    @observable
-    floorPlanImageUrlRectMap: { [key: string]: { rect: Rect, url: string } } = {};
+    baseImages: NodeDataWrapper[] = [];
 
     @observable
     visualizerStore?: VisualizerStore;
@@ -33,13 +30,8 @@ export class SpeckleStore {
     }
 
     @action
-    setBaseImageRect(rect: Rect, url: string) {
-        this.baseImageRect = { ...rect, url };
-    }
-
-    @action
-    setFloorPlanImageUrlRectMap(map: { [key: string]: { rect: Rect, url: string } }) {
-        this.floorPlanImageUrlRectMap = map;
+    addBaseImage(wrapper: NodeDataWrapper) {
+        this.baseImages.push(wrapper);
     }
 
     @computed
@@ -50,6 +42,11 @@ export class SpeckleStore {
     @computed
     get loadedMeshes() {
         return this.meshes.filter(n => n.conversionComplete);
+    }
+
+    @computed
+    get loadedBaseImages() {
+        return this.baseImages.filter(n => n.conversionComplete);
     }
 
     @computed
@@ -64,6 +61,13 @@ export class SpeckleStore {
         const visualizerStore = this.visualizerStore;
         if (!visualizerStore) return this.loadedMeshes;
         return this.loadedMeshes.filter(n => visualizerStore.includeNode(n));
+    }
+
+    @computed
+    get includedBaseImages() {
+        const visualizerStore = this.visualizerStore;
+        if (!visualizerStore) return this.loadedBaseImages;
+        return this.loadedBaseImages.filter(n => visualizerStore.includeNode(n));
     }
 
     @computed

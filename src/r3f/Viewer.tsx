@@ -53,11 +53,10 @@ const BufferLine = ({ bufferGeometry }: LineProps) => {
 //TODO why are base images treated differently from meshes and lines? I guess they currently are manually specified
 //but when they come in from Speckle we should treat them like other Speckle elements
 type ViewerProps = {
-    cameraController: CameraController,
-    baseImages: BaseImageProps[]
+    cameraController: CameraController
 };
 export const Viewer = observer((props: ViewerProps) => {
-    const { cameraController, baseImages } = props;
+    const { cameraController} = props;
     // let palette = fillColors();
     //keep track of how many times this has rendered
     const renderCount = useRef(0);
@@ -66,14 +65,6 @@ export const Viewer = observer((props: ViewerProps) => {
     });
 
     renderCount.current++;
-    const nextColor = () => {
-        // if (palette.length === 0) {
-        //     palette = fillColors();
-        // }
-        // return palette.pop()!;
-        // return '#ffd920';
-        return '#d781d7';
-    }
     return (
         <div className={'canvas-parent'}>
             <Canvas
@@ -94,7 +85,7 @@ export const Viewer = observer((props: ViewerProps) => {
                 {/*<ShadowScene minimumGroundY={-2}/>*/}
                 {/*<LayersTest/>*/}
                 {/*<ShadowGroupScene/>*/}
-                <SpeckleScene cameraController={cameraController} baseImages={baseImages}/>
+                <SpeckleScene cameraController={cameraController}/>
             </Canvas>
         </div>
     );
