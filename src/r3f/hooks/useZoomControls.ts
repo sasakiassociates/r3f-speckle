@@ -37,7 +37,7 @@ export const useZoomControls = (controls:RefObject<CameraControls>, eventEmitter
     useEventSubscription(eventEmitter, 'zoomIn', (amount: number) => {
         const camera = controls.current?.camera;
         if (camera) {
-            controls.current?.zoom(-camera.zoom / 2, true)
+            controls.current?.zoom(camera.zoom / 2, true)
         }
     });
 
