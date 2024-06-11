@@ -34,6 +34,7 @@ export class BasicVisualizerStore extends VisualizerStore {
 
     @action
     toggleSelectOnNode(nodeId:string) {
+        console.log('toggleSelectOnNode', nodeId, this.selectedNodeIds)
         const selIdx = this.selectedNodeIds.indexOf(nodeId);
         this.selectNode(nodeId, selIdx < 0)
     }
@@ -85,9 +86,9 @@ export class BasicVisualizerStore extends VisualizerStore {
     get nameById(): { [id: string]: string } {
         const ans: { [id: string]: string } = {};
         for (let id in this.materialNamesByElementId) {
-            ans[id] = this.materialNamesByElementId[id]
+            // ans[id] = this.materialNamesByElementId[id]
             if (this.selectedNodeIds.indexOf(id) >= 0) {
-                ans[id] += '*'
+                ans[id] = this.materialNamesByElementId[id]
             }
         }
         return ans;
@@ -97,7 +98,7 @@ export class BasicVisualizerStore extends VisualizerStore {
         if (name.startsWith('Pinkish')) {
             return { color: "#dc69d2", opacity: (this.opacity / 100), flat: this.flatMaterials };
         }
-        if (name.startsWith('Bluish')) {
+        if (name.startsWith('Bluish') || name.startsWith('Blueish')) {
             return { color: "#238bb8", opacity: (this.opacity / 100), flat: this.flatMaterials };
         }
         return { color: "#d8c362", opacity: 1 };

@@ -1,18 +1,18 @@
 import React, { useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import { useThree } from '@react-three/fiber';
 import { CameraControls } from '@react-three/drei';
-import { PerspectiveCamera, OrthographicCamera } from 'three';
+import { PerspectiveCamera, OrthographicCamera, Vector3 } from 'three';
 import { type EventEmitter, useEventSubscription } from "@strategies/react-events";
-import { computeBoundingSphere } from "../three";
 import CameraControlsLib from 'camera-controls';
 import type { MouseButtons } from "camera-controls/dist/types";
+import { computeBoundingSphere } from "../three";
 
 export type ViewModeEvents = {
     setView: 'top' | 'side' | '45',//handled in CameraSwitcher
 }
 
 type CameraSwitcherProps = {
-    eventEmitter:EventEmitter<ViewModeEvents>,
+    eventEmitter: EventEmitter<ViewModeEvents>,
     settings: CameraControlSettings
 }
 
@@ -21,12 +21,16 @@ export type CameraControlSettings = {
     useSimplifiedPanning: boolean
 }
 
-export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutRef<CameraSwitcherProps> & React.RefAttributes<CameraControls>> = forwardRef<CameraControls, CameraSwitcherProps>(({ settings, eventEmitter }, ref) => {
+export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutRef<CameraSwitcherProps> & React.RefAttributes<CameraControls>> = forwardRef<CameraControls, CameraSwitcherProps>(({
+                                                                                                                                                                                                      settings,
+                                                                                                                                                                                                      eventEmitter
+                                                                                                                                                                                                  }, ref) => {
 
     const { orthoMode, useSimplifiedPanning } = settings;
-    const { set, camera } = useThree();
-    const perspControlsRef  = useRef<CameraControls>(null);
-    const orthoControlsRef   = useRef<CameraControls>(null);
+    const { set, scene, camera } = useThree();
+
+    const perspControlsRef = useRef<CameraControls>(null);
+    const orthoControlsRef = useRef<CameraControls>(null);
 
     // Refs to store the camera instances
     const perspCamRef = useRef<PerspectiveCamera>(new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000));
@@ -35,53 +39,42 @@ export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutR
         window.innerWidth / 2,
         window.innerHeight / 2,
         window.innerHeight / -2,
-        0.1,
+        0.0001,
         10000
     ));
 
     useImperativeHandle(ref, () => orthoMode ? orthoControlsRef.current! : perspControlsRef.current!);
 
     useEventSubscription(eventEmitter, 'setView', (view) => {
-        //note that these do not frame the view. they need to be combined with a zoomExtents event
+        const { sphere } = computeBoundingSphere(scene);
+        const { radius } = sphere;
+        const position = new Vector3();
+        const lookAt = new Vector3();
+        lookAt.copy(sphere.center);
         if (view === '45') {
-            if (orthoMode) {
-                orthoControlsRef.current?.moveTo(10,5,10, true)
-                orthoControlsRef.current?.lookInDirectionOf(0,0,0, true)
-                //Not sure why we need the dolly, but it fixes a positioning issue
-                orthoControlsRef.current?.dolly(-5);
+            const angle = Math.PI / 4; // 45 degrees in radians
 
-            } else {
-                perspControlsRef.current?.moveTo(10,5,10, true)
-                perspControlsRef.current?.lookInDirectionOf(0,0,0, true)
-                perspControlsRef.current?.dolly(-5);
-            }
+            position.set(sphere.center.x + radius * 2 * Math.cos(angle), sphere.center.y + radius * 2 * Math.sin(angle), sphere.center.z + radius * 2 * Math.sin(angle));
+
         }
         if (view === 'top') {
-            if (orthoMode) {
-                orthoControlsRef.current?.moveTo(0,1,0, true)
-                orthoControlsRef.current?.lookInDirectionOf(0,0,0, true)
-                orthoControlsRef.current?.dolly(-5);
-
-            } else {
-                perspControlsRef.current?.moveTo(0,1,0, true)
-                perspControlsRef.current?.lookInDirectionOf(0,0,0, true)
-                perspControlsRef.current?.dolly(-5);
-
-            }
+            position.set(sphere.center.x, sphere.center.y + radius, sphere.center.z);
         }
+
         if (view === 'side') {
-            if (orthoMode) {
-                orthoControlsRef.current?.moveTo(1,0,0, true)
-                orthoControlsRef.current?.lookInDirectionOf(0,0,0, true)
-                orthoControlsRef.current?.dolly(-5);
-
-            } else {
-                perspControlsRef.current?.moveTo(1,0,0, true)
-                perspControlsRef.current?.lookInDirectionOf(0,0,0, true)
-                perspControlsRef.current?.dolly(-5);
-
-            }
+            position.set(sphere.center.x, sphere.center.y, sphere.center.z + radius);
         }
+
+        const cameraControls = orthoMode ? orthoControlsRef.current : perspControlsRef.current;
+        if (cameraControls) {
+            (async () => {
+                await Promise.all([
+                    cameraControls.setLookAt(position.x, position.y, position.z, lookAt.x, lookAt.y, lookAt.z, true),
+                    cameraControls.fitToSphere(sphere, true)
+                ])
+            })();
+        }
+
     });
 
 
