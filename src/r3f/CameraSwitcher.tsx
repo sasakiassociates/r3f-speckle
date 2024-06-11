@@ -27,19 +27,19 @@ export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutR
                                                                                                                                                                                                   }, ref) => {
 
     const { orthoMode, useSimplifiedPanning } = settings;
-    const { set, scene, camera } = useThree();
+    const { set, scene, viewport } = useThree();
 
     const perspControlsRef = useRef<CameraControls>(null);
     const orthoControlsRef = useRef<CameraControls>(null);
 
     // Refs to store the camera instances
-    const perspCamRef = useRef<PerspectiveCamera>(new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000));
+    const perspCamRef = useRef<PerspectiveCamera>(new PerspectiveCamera(75, viewport.width / viewport.height, 1, 10000));
     const orthoCamRef = useRef<OrthographicCamera>(new OrthographicCamera(
-        window.innerWidth / -2,
-        window.innerWidth / 2,
-        window.innerHeight / 2,
-        window.innerHeight / -2,
-        0.0001,
+        viewport.width / -2,
+        viewport.width / 2,
+        viewport.height / 2,
+        viewport.height / -2,
+        1,
         10000
     ));
 
@@ -119,6 +119,7 @@ export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutR
             camera={orthoCamRef.current}
             enabled={orthoMode}
             mouseButtons={orthoButtons}
+            minZoom={0.001}
         />
     </>;
 });

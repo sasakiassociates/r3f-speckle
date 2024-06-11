@@ -36,19 +36,15 @@ export const useZoomControls = (controls:RefObject<CameraControls>, eventEmitter
 
     useEventSubscription(eventEmitter, 'zoomIn', (amount: number) => {
         const camera = controls.current?.camera;
-        if (camera instanceof OrthographicCamera) {
-            controls.current?.zoom(camera.zoom / 2, true)
-        } else {
-            controls.current?.dolly(amount, true)
+        if (camera) {
+            controls.current?.zoom(-camera.zoom / 2, true)
         }
     });
 
     useEventSubscription(eventEmitter, 'zoomOut', (amount: number) => {
         const camera = controls.current?.camera;
-        if (camera instanceof OrthographicCamera) {
+        if (camera) {
             controls.current?.zoom(-camera.zoom / 2, true)
-        } else {
-            controls.current?.dolly(-amount, true)
         }
     });
 

@@ -83,7 +83,7 @@ export const Viewer = observer((props: ViewerProps) => {
                 // onCreated={({ camera }) => cameraStore?.setCamera(camera)}
                 flat={!toneMapping}
             >
-                <axesHelper args={[100]}/>
+                {/*<axesHelper args={[100]}/>*/}
                 {/*<ambientLight color={'#cccccc'}/>*/}
                 {/*<directionalLight intensity={2} color={'white'} position={[100, 100, 10]}/>*/}
                 {/*<SpeckleStage>*/}

@@ -101,7 +101,7 @@ Note: use of the global speckleStore is likely to change if we need more sophist
 ### Dev Notes
 
 #### Publishing local 
-(total time <1 minute)
+(total time <2 minutes)
 
 Here:
 1. Run esbuild

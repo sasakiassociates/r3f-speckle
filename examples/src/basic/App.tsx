@@ -22,7 +22,7 @@ const App = (props: AppProps) => {
             (async () => {
                 await mainStore.loadFromUrlParams();
                 setTimeout(()=> {
-                    mapControls.current.zoomExtents()
+                    mapControls.current.setView('45')
                 }, 100)
             })();
         }
@@ -54,8 +54,6 @@ const App = (props: AppProps) => {
         <h1>Basic example</h1>
         <p>A bare-bones example showing how to load a speckle stream and connect it to the 3D viewer. This does not rely
             on Rhino/GH/Magpie and is therefore intended to show Speckle + R3F connector very generally.</p>
-
-        <div>{mapControls.current.orthoMode ? 'ORTHO' : 'PER'}</div>
 
         {mainStore.connectionError && <div className={'error-message'}>{mainStore.connectionError}</div>}
         {!(mainStore.isConnecting || mainStore.connectedToStream) &&

@@ -1,7 +1,7 @@
 {
   "name": "@strategies/r3f-speckle",
   "private": false,
-  "version": "0.0.2-b.5",
+  "version": "0.0.2-b.9",
   "type": "module",
   "source": "src/index.ts",
   "main": "dist/index.js",
