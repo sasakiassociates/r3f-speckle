@@ -4,9 +4,9 @@ import { speckleStore, NodeDataWrapper } from '../speckle';
 import { LineBuffer } from './LineBuffer';
 import BaseImage, { type BaseImageProps, type Rect } from './BaseImage';
 import { observer } from 'mobx-react-lite';
-import { cullSpaces } from '../utils';
+import { cullSpaces, hexStringToNumber } from '../utils';
 import { useRef } from "react";
-import { EffectComposer, Outline, Select, Selection } from "@react-three/postprocessing";
+import { EffectComposer, Outline, Select, Selection, Bloom } from "@react-three/postprocessing";
 // import { BlendFunction } from "postprocessing";
 import { MeshView } from "./MeshView.tsx";
 import './SpeckleScene.scss';
@@ -23,15 +23,7 @@ type MeshListSelectViewProps = {
     receiveShadow: boolean
 };
 
-function hexStringToNumber(hexString: string): number {
-    // Remove the hash symbol (#) if present
-    if (hexString.startsWith('#')) {
-        hexString = hexString.slice(1);
-    }
 
-    // Convert the hex string to a number
-    return parseInt(hexString, 16);
-}
 
 //NOTE: we use allMeshes and visibleMeshes because it's better to not mount/unmount components for fast updates - so we mount them all, but control visibility
 type ColorProps = { color: string, opacity: number, flat?: boolean };
@@ -93,6 +85,11 @@ function Scene(props: SceneProps) {
 
     useZoomControls(controlsRef, cameraController, speckleStore.glowMeshes);
 
+    const outlineProperties = appearanceStore!.outerGlowProperties || {
+        visibleEdgeColor: hexStringToNumber('#509fc9'),
+        hiddenEdgeColor: hexStringToNumber('#7e86b9'),
+        edgeStrength: 8,
+    };
     return (
         <>
             <ambientLight color={'#999'}/>
@@ -102,10 +99,9 @@ function Scene(props: SceneProps) {
                 <EffectComposer autoClear={false}>
                     <Outline
                         // blendFunction={BlendFunction.ALPHA}
-                        visibleEdgeColor={hexStringToNumber(appearanceStore!.visibleEdgeColor)}
-                        hiddenEdgeColor={hexStringToNumber(appearanceStore!.hiddenEdgeColor)}
+                        {...outlineProperties}
                         blur={true}
-                        edgeStrength={8}/>
+                    />
                 </EffectComposer>
                 <MeshListSelectView
                     selectIsEnabled={true}

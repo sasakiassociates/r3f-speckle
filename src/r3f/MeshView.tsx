@@ -5,17 +5,33 @@ import type { NodeDataWrapper } from "../speckle";
 import type { MeshProps, ThreeEvent } from "@react-three/fiber";
 import { DoubleSide } from "three";
 import type { AppearanceAttributes } from "../store";
+import { MeshFlatMaterial } from "./materials/MeshFlatMaterial.ts";
 
-const generateMaterialKey = (props: AppearanceAttributes) => JSON.stringify(props);
+const generateMaterialKey = (props: MaterialAttributes) => JSON.stringify(props);
+export type MaterialAttributes = { color: string, opacity?: number, transparent?: boolean, flat?: boolean };
+
+
+
 
 //another r3f method is to share materials via useResource https://codesandbox.io/p/sandbox/billowing-monad-bgnnt?file=%2Fsrc%2FApp3d.tsx
-const getMaterial = (materialProps: AppearanceAttributes, materialCache: { [key: string]: Material }) => {
-    const key = generateMaterialKey(materialProps);
+const getMaterial = (materialProps: MaterialAttributes, materialCache: { [key: string]: Material }) => {
+    const pickMaterialAttributes = ({ color, opacity, flat }: MaterialAttributes) => {
+        const opacityApplied = (opacity === undefined) ? 1 : opacity;
+        return ({
+            color,
+            opacity: opacityApplied,
+            transparent: opacityApplied < 1,
+            flat: !!flat
+        });
+    };
+    const filteredProps = pickMaterialAttributes(materialProps);
+    const key = generateMaterialKey(filteredProps);
     if (!materialCache[key]) {
         let newMaterial;
-        const { flat, ...matProps } = materialProps;
+        const { flat, ...matProps } = filteredProps;
         if (flat) {
             newMaterial = new MeshBasicMaterial(matProps);
+            // newMaterial = new MeshFlatMaterial({color: matProps.color, opacity: matProps.opacity, maxOpacity: 0.25});
         } else {
             newMaterial = new MeshStandardMaterial({ side: DoubleSide, ...matProps, });
         }

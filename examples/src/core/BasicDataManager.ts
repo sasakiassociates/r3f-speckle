@@ -2,6 +2,10 @@ import { runInAction } from "mobx";
 
 import { SpeckleDataManager } from "./SpeckleDataManager.ts";
 import type { MainStore } from "./MainStore.ts";
+import type ObjectLoader from "@speckle/objectloader";
+import type { NodeDataWrapper } from "@strategies/r3f-speckle/speckle";
+import { data } from "autoprefixer";
+import { AppearanceNodeWrapper } from "./AppearanceNodeWrapper.ts";
 
 export class BasicDataManager extends SpeckleDataManager {
     private mainStore: MainStore;
@@ -9,6 +13,10 @@ export class BasicDataManager extends SpeckleDataManager {
     constructor(mainStore: MainStore) {
         super();
         this.mainStore = mainStore;
+    }
+
+    getNodeWrapper(loader: ObjectLoader, data: any, metadata?: { [p: string]: string }): NodeDataWrapper {
+        return new AppearanceNodeWrapper(this.mainStore.appearanceStore, loader, data, metadata)
     }
 
     processSpeckleData(speckleData: any): void {
@@ -30,12 +38,6 @@ export class BasicDataManager extends SpeckleDataManager {
                 meshes.push(element);
             }
         }
-        for (let mesh of meshes) {
-            let materialName = mesh["@displayValue"][0].renderMaterial.name;
-            // console.log("MATERIAL NAME", materialName);
-            this.mainStore.visualizerStore.setMaterialName(mesh.id, materialName);
-        }
-
         runInAction(() => {//lots of mobx updates better to batch them
             // mainStore.clearData();
             // // let rootObj = commitObj['@Data']["@{0}"][0];
@@ -43,12 +45,13 @@ export class BasicDataManager extends SpeckleDataManager {
 
             for (let mesh of meshes) {
                 const geometryObj = mesh["@displayValue"][0];
+                let materialName = geometryObj.renderMaterial.name;
                 // console.log("mesh", mesh);
                 const w = this.addMesh(geometryObj,
-                    { id: mesh.id });
+                    { id: mesh.id, materialName });
                 if (w) w.events.on('click', (e) => {
                     // console.log('calling toggleSelectOnNode');
-                    this.mainStore.visualizerStore.toggleSelectOnNode(mesh.id)
+                    this.mainStore.appearanceStore.toggleSelectOnNode(mesh.id)
                 });
                 // mainStore.addElement(programChunkObj);
             }

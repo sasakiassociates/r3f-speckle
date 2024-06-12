@@ -21,7 +21,7 @@ const App = (props: AppProps) => {
         if (!mainStore.isConnecting) {
             (async () => {
                 await mainStore.loadFromUrlParams();
-                setTimeout(()=> {
+                setTimeout(() => {
                     mapControls.current.setView('45')
                 }, 100)
             })();
@@ -33,11 +33,11 @@ const App = (props: AppProps) => {
     }, [simplifiedPanning]);
 
     useEffect(() => {
-        mainStore.visualizerStore.setOpacity(opacity)
+        mainStore.appearanceStore.setOpacity(opacity)
     }, [opacity]);
 
     useEffect(() => {
-        mainStore.visualizerStore.setFlatMaterials(flat)
+        mainStore.appearanceStore.setFlatMaterials(flat)
     }, [flat]);
 
     const location = window.location;
@@ -56,14 +56,22 @@ const App = (props: AppProps) => {
             on Rhino/GH/Magpie and is therefore intended to show Speckle + R3F connector very generally.</p>
 
         {mainStore.connectionError && <div className={'error-message'}>{mainStore.connectionError}</div>}
-        {!(mainStore.isConnecting || mainStore.connectedToStream) &&
-            <a href={generateUrlWithParams('25a13f78fa', '9d3ee826aa4e567d504e2ba0a0a075d5')}>Example stream</a>}
+        {!(mainStore.isConnecting || mainStore.connectedToStream) && <div>
+            <p>
+                <a href={generateUrlWithParams('25a13f78fa', '9d3ee826aa4e567d504e2ba0a0a075d5')}>Simple Example
+                    stream</a>
+            </p>
+            <p>
+                <a href={generateUrlWithParams('25a13f78fa', 'd447a9eabc12cf6ac8603a5c8685491e')}>Yumana Example
+                    stream</a>
+            </p>
+        </div>}
 
         {mainStore.connectedToStream &&
             <div>
                 <Viewer
                     cameraController={mapControls.current}
-                    />
+                />
                 <Toolbar mapControls={mapControls.current}/>
             </div>
         }

@@ -11,3 +11,13 @@ export const generateUUID = () => {
 export const cullSpaces = (str: string) => {
     return str.replace(/\s/g, '');
 }
+
+export const hexStringToNumber = (hexString: string): number => {
+    // Remove the hash symbol (#) if present
+    if (hexString.startsWith('#')) {
+        hexString = hexString.slice(1);
+    }
+
+    // Convert the hex string to a number
+    return parseInt(hexString, 16);
+}

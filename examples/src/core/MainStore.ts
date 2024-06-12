@@ -1,5 +1,5 @@
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
-import { BasicVisualizerStore } from "./BasicVisualizerStore.ts";
+import { BasicAppearanceStore } from "./BasicAppearanceStore.ts";
 import { BasicSpeckleLoader } from "./BasicSpeckleLoader.ts";
 import { BasicDataManager } from "./BasicDataManager.ts";
 import type { SpeckleDataManager } from "./SpeckleDataManager.ts";
@@ -19,7 +19,7 @@ export class MainStore {
     @observable
     isReady = false;
 
-    visualizerStore: BasicVisualizerStore;
+    appearanceStore: BasicAppearanceStore;
     speckleLoader: BasicSpeckleLoader;
     dataManager: SpeckleDataManager;
     private server?: string;
@@ -27,8 +27,8 @@ export class MainStore {
     constructor() {
         makeObservable(this);
         this.dataManager = new BasicDataManager(this);
-        this.visualizerStore = new BasicVisualizerStore()
-        this.speckleLoader = new BasicSpeckleLoader(this.dataManager, this.visualizerStore);
+        this.appearanceStore = new BasicAppearanceStore()
+        this.speckleLoader = new BasicSpeckleLoader(this.dataManager, this.appearanceStore);
         this.speckleLoader.on('progress', progress => {
             // progressCallback(progress.progress);
         });

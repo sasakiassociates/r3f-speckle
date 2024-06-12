@@ -1,6 +1,5 @@
 import { action, computed, makeObservable, observable } from "mobx";
 import type { NodeDataWrapper } from "./NodeDataWrapper";
-import type { VisualizerStore } from "../store";
 import type { AppearanceStore } from "../store";
 
 export class SpeckleStore {
@@ -85,7 +84,7 @@ export class SpeckleStore {
         return this.includedMeshes.filter(n => !appearanceStore.computeAppearance(n).outerGlow);
     }
 
-    setVisualizerStore<T extends AppearanceStore>(appearanceStore: T) {
+    setAppearanceStore<T extends AppearanceStore>(appearanceStore: T) {
         this.appearanceStore = appearanceStore;
     }
 }

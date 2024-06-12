@@ -1,16 +1,16 @@
 import { SpeckleLoader, speckleStore } from "@strategies/r3f-speckle/index.ts";
-import type { BasicVisualizerStore } from "./BasicVisualizerStore.ts";
+import type { BasicAppearanceStore } from "./BasicAppearanceStore.ts";
 import type { SpeckleDataManager } from "./SpeckleDataManager.ts";
 
 export class BasicSpeckleLoader extends SpeckleLoader {
     speckleDataManager: SpeckleDataManager;
 
-    constructor(speckleDataManager: SpeckleDataManager, visualizerStore: BasicVisualizerStore) {
+    constructor(speckleDataManager: SpeckleDataManager, appearanceStore: BasicAppearanceStore) {
         super(false);
         this.speckleDataManager = speckleDataManager;
         this.speckleDataManager.speckleLoader = this;
 
-        speckleStore.setVisualizerStore(visualizerStore);
+        speckleStore.setAppearanceStore(appearanceStore);
     }
 
     getLoader() {
