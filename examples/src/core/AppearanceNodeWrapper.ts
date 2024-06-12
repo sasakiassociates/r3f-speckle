@@ -3,6 +3,7 @@ import { action, computed, makeObservable } from "mobx";
 import type ObjectLoader from "@speckle/objectloader";
 import type { AppearanceAttributes } from "@strategies/r3f-speckle/store";
 import type { BasicAppearanceStore } from "./BasicAppearanceStore";
+import type { MeshMaterialStyle } from "@strategies/r3f-speckle/r3f/MeshView.tsx";
 
 //this approach allows the NodeDataWrapper itself to also control appearance.
 //in this case the AppearanceStore simply cedes control over appearance to the AppearanceNodeWrapper
@@ -26,7 +27,7 @@ export class AppearanceNodeWrapper extends NodeDataWrapper {
         const general = {
             outerGlow: isSelected,
             opacity: isSelected ? 1 : this.appearanceStore.opacity / 100,
-            flat: this.appearanceStore.flatMaterials && !isSelected,
+            style: (isSelected ? 'solid' : (this.appearanceStore.flatMaterials) ? 'flat' : 'translucent') as MeshMaterialStyle,
             visible: true,
         };
         if (isSelected) {

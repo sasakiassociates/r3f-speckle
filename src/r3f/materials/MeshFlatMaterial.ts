@@ -14,6 +14,8 @@ interface MeshFlatMaterialParameters extends ShaderMaterialParameters {
     maxOpacity?: number;
 }
 
+//NOTE: trying to get a flat material that never renders too strong with opacity, but was not too successful
+
 export class MeshFlatMaterial extends ShaderMaterial {
     color: Color;
     maxOpacity: number;
@@ -49,7 +51,7 @@ export class MeshFlatMaterial extends ShaderMaterial {
         }
       `,
             transparent: true,
-            blending: NormalBlending,
+            blending: CustomBlending,
             blendEquation: AddEquation,
             blendSrc: SrcAlphaFactor,
             blendDst: OneMinusSrcAlphaFactor,
