@@ -20,22 +20,26 @@ function convertBufferGeometryToPoints(bufferGeometry: BufferGeometry): [number,
     return points;
 }
 
-export const LineBuffer = (props: {bufferGeometry:BufferGeometry})=> {
+type LineMaterialAttr = {
+    lineWidth?: number,
+    color?: string,
+    opacity?: number
+}
+export const LineBuffer = (props: {bufferGeometry:BufferGeometry, materialAttributes?: LineMaterialAttr})=> {
     const points: Tuple[] = convertBufferGeometryToPoints(props.bufferGeometry);
-
+    const { materialAttributes } = props;
     const lineProps = {
         // Example properties
         scale: [1, 1, 1] as Tuple, // Scale of the line
         position: [0, 0, 0] as Tuple, // Position in the scene
     };
 
+    let opacity = materialAttributes?.opacity || 0.2;
     const materialProps = {
-        // Example properties
-        lineWidth: 2.5, // Width of the line
-        color: "#333333", // Color of the line
-        opacity: 0.2, // Opacity of the line
-        transparent: true, // Whether the material is transparent
-        // You can add more material properties as needed
+        lineWidth: materialAttributes?.lineWidth || 2.5,
+        color: materialAttributes?.color || "#333333",
+        opacity: opacity,
+        transparent: opacity < 1,
     };
     return <Line
         points={points}

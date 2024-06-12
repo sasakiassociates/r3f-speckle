@@ -20,23 +20,23 @@ type MeshListSelectViewProps = {
     allMeshes: NodeDataWrapper[],
     visibleMeshes: NodeDataWrapper[],
     materialCache: { [key: string]: Material },
+    colorById: { [id: string]: ColorProps },
     receiveShadow: boolean
 };
 
 //NOTE: we use allMeshes and visibleMeshes because it's better to not mount/unmount components for fast updates - so we mount them all, but control visibility
+type ColorProps = { color: string, opacity: number, flat?: boolean };
+
 //https://docs.pmnd.rs/react-three-fiber/advanced/pitfalls#don't-mount-indiscriminately
 const MeshListSelectView = observer(({
                                          selectIsEnabled,
                                          allMeshes,
                                          visibleMeshes,
                                          materialCache,
-                                         receiveShadow
+                                         receiveShadow,
+                                         colorById
                                      }: MeshListSelectViewProps) => {
     const { visualizerStore } = speckleStore;
-    let colorById: { [id: string]: { color: string, opacity: number, flat?: boolean } } = {}
-    if (visualizerStore) {
-        colorById = visualizerStore.colorById;
-    }
     return <Select enabled={selectIsEnabled}>
         {allMeshes.map(geometry => (
             <MeshView
@@ -58,8 +58,28 @@ const MeshListSelectView = observer(({
     </Select>
 });
 
+const getLineMaterialAttributes = (geometry: NodeDataWrapper, colorById: {
+    [id: string]: ColorProps
+}): MaterialAttributes & {lineWidth:number} => {
+    //TODO a lot this is getting pretty use-case specific
+    //in the general r3f-speckle viewer we should only be passing
+    //material attributes
+    //even concepts like "selection" don't belong here
+    //although we do need a way to manage the outer glow elements
+    //perhaps those could just have a 'glow' attribute?
+
+    let lineWidth = 2;
+    const { visualizerStore } = speckleStore;
+    if (visualizerStore) {
+        if (visualizerStore.nodeIsSelected(geometry)) {
+            lineWidth = 4;
+        }
+    }
+    return { ...getMaterialAttributes(geometry, colorById), lineWidth };
+}
+
 const getMaterialAttributes = (geometry: NodeDataWrapper, colorById: {
-    [id: string]: { color: string, opacity: number, flat?: boolean }
+    [id: string]: ColorProps
 }): MaterialAttributes => {
     const { visualizerStore } = speckleStore;
     if (!visualizerStore) return { color: '#ffffff' };
@@ -107,6 +127,12 @@ function Scene(props: SceneProps) {
         selfShading: false,
     });
 
+    const { visualizerStore } = speckleStore;
+    let colorById: { [id: string]: ColorProps } = {}
+    if (visualizerStore) {
+        colorById = visualizerStore.colorById;
+    }
+
     const controlsRef = useRef<CameraControls>(null);
 
     useZoomControls(controlsRef, cameraController, speckleStore.selectedMeshes);
@@ -127,6 +153,7 @@ function Scene(props: SceneProps) {
                 </EffectComposer>
                 <MeshListSelectView
                     selectIsEnabled={true}
+                    colorById={colorById}
                     allMeshes={speckleStore.includedMeshes}
                     visibleMeshes={speckleStore.selectedMeshes}
                     materialCache={materialCache.current}
@@ -134,6 +161,7 @@ function Scene(props: SceneProps) {
                 />
                 <MeshListSelectView
                     selectIsEnabled={false}
+                    colorById={colorById}
                     allMeshes={speckleStore.includedMeshes}
                     visibleMeshes={speckleStore.unselectedMeshes}
                     materialCache={materialCache.current}
@@ -143,7 +171,9 @@ function Scene(props: SceneProps) {
 
             {displayLines &&
                 speckleStore.includedLines.map(geometry => {
-                    return <LineBuffer key={geometry.id} bufferGeometry={geometry.lineGeometry}/>;
+                    return <LineBuffer key={geometry.id}
+                                       materialAttributes={getLineMaterialAttributes(geometry, colorById)}
+                                       bufferGeometry={geometry.lineGeometry}/>;
                 })}
             {displayBase &&
                 speckleStore.includedBaseImages.map(wrapper => {
