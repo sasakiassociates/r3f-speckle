@@ -25,19 +25,19 @@ type LineMaterialAttr = {
     color?: string,
     opacity?: number
 }
-export const LineBuffer = (props: {bufferGeometry:BufferGeometry, materialAttributes?: LineMaterialAttr})=> {
+export const LineBuffer = (props: {bufferGeometry:BufferGeometry, appearance?: LineMaterialAttr})=> {
     const points: Tuple[] = convertBufferGeometryToPoints(props.bufferGeometry);
-    const { materialAttributes } = props;
+    const { appearance } = props;
     const lineProps = {
         // Example properties
         scale: [1, 1, 1] as Tuple, // Scale of the line
         position: [0, 0, 0] as Tuple, // Position in the scene
     };
 
-    let opacity = materialAttributes?.opacity || 0.2;
+    let opacity = appearance?.opacity || 0.2;
     const materialProps = {
-        lineWidth: materialAttributes?.lineWidth || 2.5,
-        color: materialAttributes?.color || "#333333",
+        lineWidth: appearance?.lineWidth || 2.5,
+        color: appearance?.color || "#333333",
         opacity: opacity,
         transparent: opacity < 1,
     };

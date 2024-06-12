@@ -4,13 +4,12 @@ import { Material, MeshBasicMaterial, MeshStandardMaterial, Vector3 } from "thre
 import type { NodeDataWrapper } from "../speckle";
 import type { MeshProps, ThreeEvent } from "@react-three/fiber";
 import { DoubleSide } from "three";
+import type { AppearanceAttributes } from "../store";
 
-export type MaterialAttributes = { color: string, opacity?: number, transparent?: boolean, flat?: boolean };
-
-const generateMaterialKey = (props: MaterialAttributes) => JSON.stringify(props);
+const generateMaterialKey = (props: AppearanceAttributes) => JSON.stringify(props);
 
 //another r3f method is to share materials via useResource https://codesandbox.io/p/sandbox/billowing-monad-bgnnt?file=%2Fsrc%2FApp3d.tsx
-const getMaterial = (materialProps: MaterialAttributes, materialCache: { [key: string]: Material }) => {
+const getMaterial = (materialProps: AppearanceAttributes, materialCache: { [key: string]: Material }) => {
     const key = generateMaterialKey(materialProps);
     if (!materialCache[key]) {
         let newMaterial;
@@ -18,7 +17,7 @@ const getMaterial = (materialProps: MaterialAttributes, materialCache: { [key: s
         if (flat) {
             newMaterial = new MeshBasicMaterial(matProps);
         } else {
-            newMaterial = new MeshStandardMaterial({side: DoubleSide, ...matProps, });
+            newMaterial = new MeshStandardMaterial({ side: DoubleSide, ...matProps, });
         }
         materialCache[key] = newMaterial;
     }
@@ -26,17 +25,17 @@ const getMaterial = (materialProps: MaterialAttributes, materialCache: { [key: s
 }
 type MeshViewProps = MeshProps & {
     geometryWrapper: NodeDataWrapper,
-    materialAttributes: MaterialAttributes,
+    appearance: AppearanceAttributes,
     materialCache: { [key: string]: Material }
-    label?: string,
 }
 export const MeshView = ((props: MeshViewProps) => {
-        const { geometryWrapper, materialAttributes, materialCache, label, ...rest } = props;
+        const { geometryWrapper, appearance, materialCache, ...rest } = props;
         geometryWrapper.meshGeometry?.computeBoundingBox();
         const center = new Vector3();
         geometryWrapper.meshGeometry?.boundingBox?.getCenter(center);
         // const noCache: { [key: string]: Material; } = {};
-        const material = getMaterial(materialAttributes, materialCache);
+        const material = getMaterial(appearance, materialCache);
+        const label = appearance.label;
         return <mesh
             key={geometryWrapper.id}
             geometry={geometryWrapper.meshGeometry}
