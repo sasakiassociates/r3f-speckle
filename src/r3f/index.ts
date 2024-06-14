@@ -11,3 +11,4 @@ export * from "./Viewer";
 
 export {type ViewModeEvents} from './CameraSwitcher'
 export {type ViewerZoomEvents} from './hooks/useZoomControls'
+export {type MeshMaterialStyle} from './MeshView'

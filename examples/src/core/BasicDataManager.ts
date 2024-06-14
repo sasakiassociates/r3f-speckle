@@ -46,6 +46,10 @@ export class BasicDataManager extends SpeckleDataManager {
             for (let mesh of meshes) {
                 const geometryObj = mesh["@displayValue"][0];
                 let materialName = geometryObj.renderMaterial.name;
+                let textureCoordinates = geometryObj.textureCoordinates;
+                if (textureCoordinates && textureCoordinates.length > 0) {
+                    console.log('textureCoordinates', textureCoordinates);
+                }
                 // console.log("mesh", mesh);
                 const w = this.addMesh(geometryObj,
                     { id: mesh.id, materialName });

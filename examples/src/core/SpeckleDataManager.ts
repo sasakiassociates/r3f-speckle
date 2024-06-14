@@ -1,7 +1,6 @@
 import { Vector3 } from "three";
 import { NodeDataWrapper, speckleStore } from "@strategies/r3f-speckle/speckle";
 import type { BasicSpeckleLoader } from "./BasicSpeckleLoader.ts";
-import { AppearanceNodeWrapper } from "./AppearanceNodeWrapper.ts";
 import type ObjectLoader from "@speckle/objectloader";
 
 export abstract class SpeckleDataManager {

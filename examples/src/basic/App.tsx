@@ -58,7 +58,7 @@ const App = (props: AppProps) => {
         {mainStore.connectionError && <div className={'error-message'}>{mainStore.connectionError}</div>}
         {!(mainStore.isConnecting || mainStore.connectedToStream) && <div>
             <p>
-                <a href={generateUrlWithParams('25a13f78fa', '9d3ee826aa4e567d504e2ba0a0a075d5')}>Simple Example
+                <a href={generateUrlWithParams('25a13f78fa', '5679176eb6a4057f42553de135911fd6')}>Simple Example
                     stream</a>
             </p>
             <p>

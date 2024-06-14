@@ -1,6 +1,6 @@
 import type { NodeDataWrapper } from "../speckle";
 import { hexStringToNumber } from "../utils.ts";
-import type { MeshMaterialStyle } from "../r3f/MeshView.tsx";
+import type { MeshMaterialStyle } from "../r3f";
 
 export type AppearanceAttributes = {//this is a mix of properties for lines as well as meshes - only valid ones apply, but this format keeps it simple
     visible: boolean,
@@ -16,10 +16,19 @@ export type AppearanceAttributes = {//this is a mix of properties for lines as w
 export abstract class AppearanceStore {
     abstract computeAppearance(n: NodeDataWrapper): AppearanceAttributes;
 
+    getOuterGlowValues() {
+        const { visibleEdgeColor, hiddenEdgeColor, ...rest } = this.outerGlowProperties;
+        return {
+            visibleEdgeColor: hexStringToNumber(visibleEdgeColor),
+            hiddenEdgeColor: hexStringToNumber(hiddenEdgeColor),
+            ...rest,
+        }
+    }
+
     get outerGlowProperties() {
         return {
-            visibleEdgeColor: hexStringToNumber('#31adf1'),
-            hiddenEdgeColor: hexStringToNumber('#555c9e'),
+            visibleEdgeColor: '#31adf1',
+            hiddenEdgeColor: '#555c9e',
             edgeStrength: 12,
         }
     };

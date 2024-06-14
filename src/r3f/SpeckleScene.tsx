@@ -85,11 +85,7 @@ function Scene(props: SceneProps) {
 
     useZoomControls(controlsRef, cameraController, speckleStore.glowMeshes);
 
-    const outlineProperties = appearanceStore!.outerGlowProperties || {
-        visibleEdgeColor: hexStringToNumber('#509fc9'),
-        hiddenEdgeColor: hexStringToNumber('#7e86b9'),
-        edgeStrength: 8,
-    };
+    const outlineProperties = appearanceStore!.getOuterGlowValues();
     return (
         <>
             <ambientLight color={'#999'}/>

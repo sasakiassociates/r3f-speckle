@@ -8,6 +8,7 @@ import type ObjectLoader from "@speckle/objectloader";
 import type { GeometryData } from "./modules/converter/Geometry";
 import { EventEmitter } from "@strategies/react-events";
 import type { ThreeEvent } from "@react-three/fiber";
+import { generateUVs } from "../three/textureMath.ts";
 
 type NodeEventArgs = {
     click: { event: ThreeEvent<MouseEvent> };
@@ -161,6 +162,8 @@ export class NodeDataWrapper implements NodeData {
 
         // Set the indices from the props
         geom.setIndex(new BufferAttribute(new Uint16Array(indices), 1));
+
+        generateUVs(geom, true);
 
         this.applyTransforms(geom, geometryData);
 
