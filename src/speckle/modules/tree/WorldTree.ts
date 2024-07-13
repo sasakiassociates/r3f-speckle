@@ -7,14 +7,15 @@ export type SearchPredicate = (node: TreeNode) => boolean;
 // eslint-disable-next-line no-unused-vars
 export type AsyncSearchPredicate = (node: TreeNode) => Promise<boolean>;
 
-
-
 export interface NodeData {
+    id: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     raw: { [prop: string]: any }
     children: TreeNode[]
-    nestedNodes: TreeNode[]
     atomic: boolean
-    renderView?: any
+    nestedNodes?: TreeNode[]
+    subtreeId?: number
+    instanced?: boolean
 }
 
 export class WorldTree {

@@ -1,7 +1,7 @@
 import {
     AddEquation,
     Color,
-    CustomBlending, MaxEquation, NormalBlending, OneMinusSrcAlphaFactor,
+    CustomBlending, DoubleSide, MaxEquation, NormalBlending, OneMinusSrcAlphaFactor,
     ShaderMaterial,
     type ShaderMaterialParameters,
     SrcAlphaFactor, SubtractEquation
@@ -51,6 +51,8 @@ export class MeshFlatMaterial extends ShaderMaterial {
         }
       `,
             transparent: true,
+            // depthWrite: false,
+            // depthTest: false,
             blending: CustomBlending,
             blendEquation: AddEquation,
             blendSrc: SrcAlphaFactor,
@@ -62,5 +64,7 @@ export class MeshFlatMaterial extends ShaderMaterial {
         this.color = color;
         this.opacity = opacity;
         this.maxOpacity = maxOpacity;
+
+        this.side = DoubleSide
     }
 }

@@ -29,34 +29,53 @@ export class BasicDataManager extends SpeckleDataManager {
 //elements[0].elements[0]["@displayValue"][0].renderMaterial.name
 
         const meshes: any = [];
-        for (let collection of speckleData.elements) {
+
+        const addElement = (collection: any) => {
+            if (!collection.elements) return;
             for (let element of collection.elements) {
-                if (!element["@displayValue"]) {
-                    //probably a polycurve
+                if (element.speckle_type === 'Objects.Geometry.Mesh') {
+                    meshes.push([element]);
                     continue;
                 }
-                meshes.push(element);
+                if (element["@displayValue"]) {
+                    meshes.push(element["@displayValue"]);
+                    continue;
+                }
+                if (element["displayValue"]) {
+                    meshes.push(element["displayValue"]);
+                    continue;
+                }
+                addElement(element);
             }
         }
+        addElement(speckleData);
+
         runInAction(() => {//lots of mobx updates better to batch them
             // mainStore.clearData();
             // // let rootObj = commitObj['@Data']["@{0}"][0];
             // let rootObj = speckleData;
-
+            // const testBlobStream = 'https://sasaki.speckle.xyz/streams/2a7f62dd54';//TEMP too specific
+            const testBlobStream = '';
             for (let mesh of meshes) {
-                const geometryObj = mesh["@displayValue"][0];
-                let materialName = geometryObj.renderMaterial.name;
-                let textureCoordinates = geometryObj.textureCoordinates;
-                if (textureCoordinates && textureCoordinates.length > 0) {
-                    console.log('textureCoordinates', textureCoordinates);
+                for (let geometryObj of mesh) {
+                    let materialName = geometryObj.renderMaterial?.name;
+                    let textureCoordinates = geometryObj.textureCoordinates;
+                    if (textureCoordinates && textureCoordinates.length > 0) {
+                        // console.log('textureCoordinates', textureCoordinates);
+                    }
+                    if (!materialName || materialName === 'Material') {
+                        this.addBaseImage(geometryObj);
+                    } else {
+                        // console.log("mesh", mesh);
+                        const w = this.addMesh(geometryObj,
+                            { id: mesh.id, materialName });
+                        if (w) w.events.on('click', (e) => {
+                            // console.log('calling toggleSelectOnNode');
+                            this.mainStore.appearanceStore.toggleSelectOnNode(mesh.id)
+                        });
+                    }
+
                 }
-                // console.log("mesh", mesh);
-                const w = this.addMesh(geometryObj,
-                    { id: mesh.id, materialName });
-                if (w) w.events.on('click', (e) => {
-                    // console.log('calling toggleSelectOnNode');
-                    this.mainStore.appearanceStore.toggleSelectOnNode(mesh.id)
-                });
                 // mainStore.addElement(programChunkObj);
             }
 

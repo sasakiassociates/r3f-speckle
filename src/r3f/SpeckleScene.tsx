@@ -74,7 +74,7 @@ function Scene(props: SceneProps) {
     });
     const { displayLines, displayBase, selfShading, displayMeshes } = useControls({
         displayMeshes: true,
-        displayLines: false,
+        displayLines: true,
         displayBase: true,
         selfShading: false,
     });

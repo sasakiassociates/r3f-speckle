@@ -3,6 +3,7 @@ import { BasicAppearanceStore } from "./BasicAppearanceStore.ts";
 import { BasicSpeckleLoader } from "./BasicSpeckleLoader.ts";
 import { BasicDataManager } from "./BasicDataManager.ts";
 import type { SpeckleDataManager } from "./SpeckleDataManager.ts";
+import { MagpieDataManager } from "../magpie/MagpieDataManager.ts";
 
 const settings = { server: 'https://sasaki.speckle.xyz' };
 
@@ -26,12 +27,23 @@ export class MainStore {
 
     constructor() {
         makeObservable(this);
-        this.dataManager = new BasicDataManager(this);
+        const { urlParams } = this;
+        if (urlParams.get('magpie')) {
+            this.dataManager = new MagpieDataManager(this);
+        } else {
+            this.dataManager = new BasicDataManager(this);
+        }
         this.appearanceStore = new BasicAppearanceStore()
         this.speckleLoader = new BasicSpeckleLoader(this.dataManager, this.appearanceStore);
         this.speckleLoader.on('progress', progress => {
             // progressCallback(progress.progress);
         });
+    }
+
+    get streamUrl() {
+        const { urlParams, server } = this;
+        const streamId = urlParams.get('streamId');
+        return `${server}/api/stream/${streamId}`;
     }
 
     async loadFromUrlParams() {
@@ -43,8 +55,7 @@ export class MainStore {
         if (!streamId || !commitObjectId) return;
         try {
             await this.connectSpeckle(this.server, streamId, commitObjectId);
-        }
-        catch (e:unknown) {
+        } catch (e: unknown) {
             if (e instanceof Error) {
                 this.reportConnectionError(e.message);
             }

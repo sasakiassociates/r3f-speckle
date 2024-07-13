@@ -45,7 +45,7 @@ const useMaterial = (materialProps: MaterialAttributes, materialCache: { [key: s
                     });
                     break;
                 case 'flat':
-                    newMaterial = new MeshBasicMaterial(matProps);
+                    newMaterial = new MeshBasicMaterial({ side: DoubleSide, ...matProps });
                     break;
                 case 'texture':
                     const { color, ...remProps } = matProps;

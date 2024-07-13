@@ -40,7 +40,11 @@ export class AppearanceNodeWrapper extends NodeDataWrapper {
         if (this.materialName.startsWith('Bluish') || this.materialName.startsWith('Blueish')) {
             return { ...general, color: "#238bb8" };
         }
-        if (this.materialName.startsWith('Texture')) {
+        if (this.metadata?.isBaseImage) {
+            return { ...general, style:'texture', color: this.metadata?.imageUrl };
+        }
+        //TEMP test
+        if (this.materialName.startsWith('Texture') || this.metadata?.isBaseImage) {
             return { ...general, style:'texture', color: "https://sasaki.speckle.xyz/api/stream/2a7f62dd54/blob/4b8470d1f6" };
         }
         return { ...general, color: "#d8c362" };

@@ -9,6 +9,8 @@ import type { GeometryData } from "./modules/converter/Geometry";
 import { EventEmitter } from "@strategies/react-events";
 import type { ThreeEvent } from "@react-three/fiber";
 import { generateUVs } from "../three/textureMath.ts";
+import type { Rect } from "../r3f";
+import { SpeckleGeometryConverter } from "./modules/converter/SpeckleGeometryConverter.ts";
 
 type NodeEventArgs = {
     click: { event: ThreeEvent<MouseEvent> };
@@ -22,6 +24,10 @@ export class NodeEvents extends EventEmitter<NodeEventArgs> {
 
 }
 
+//TODO not sure how we should access this - it was previously static, but I think was abstracted
+//to support other converters (like OBJ)
+const speckleGeometryConverter = new SpeckleGeometryConverter();
+
 export class NodeDataWrapper implements NodeData {
     raw: { [prop: string]: any };
     atomic: boolean = true;
@@ -31,6 +37,7 @@ export class NodeDataWrapper implements NodeData {
     private tree: WorldTree;
 
     displayScale = 1;
+    uvBoundsRectangle?: Rect;
 
     speckleType: string;
     id: string = generateUUID();
@@ -41,12 +48,13 @@ export class NodeDataWrapper implements NodeData {
     conversionComplete = false;
 
     @observable
-    metadata?: { [key:string] : any } = {};
-    constructor(objectLoader: ObjectLoader, data: any, metadata?: { [key:string] : string }) {
+    metadata?: { [key: string]: any } = {};
+
+    constructor(objectLoader: ObjectLoader, data: any, metadata?: { [key: string]: string }) {
         makeObservable(this);
         this.raw = data;
         this.metadata = metadata;
-        this.speckleType = GeometryConverter.getSpeckleType(this);
+        this.speckleType = speckleGeometryConverter.getSpeckleType(this);
 
         this.tree = new WorldTree();
         const converter = new Converter(objectLoader, this.tree);
@@ -75,8 +83,12 @@ export class NodeDataWrapper implements NodeData {
     }
 
     @action
-    setMetadata(metadata: { [key:string] : any }) {
+    setMetadata(metadata: { [key: string]: any }) {
         this.metadata = metadata;
+    }
+
+    setUvBoundsRectangle(rectangle: Rect) {
+        this.uvBoundsRectangle = rectangle;
     }
 
     get children(): TreeNode[] {
@@ -120,7 +132,7 @@ export class NodeDataWrapper implements NodeData {
 
         const { displayScale } = this;
         geometry.scale(displayScale, displayScale, displayScale);
-        geometry.rotateX(-Math.PI/2);
+        geometry.rotateX(-Math.PI / 2);
 
         const { offset } = this;
         if (offset) geometry.translate(offset.x, offset.y, offset.z);
@@ -129,17 +141,16 @@ export class NodeDataWrapper implements NodeData {
         // adjustForView.makeScale(0.1, 0.1, 0.1);
 
 
-
     }
 
     get geometryData() {
-        return GeometryConverter.convertNodeToGeometryData(this);
+        return speckleGeometryConverter.convertNodeToGeometryData(this);
     }
 
     makeLineBuffer(): BufferGeometry {
         const geometry = new BufferGeometry();
-        const {geometryData} = this;
-        if (!geometryData) return geometry;
+        const { geometryData } = this;
+        if (!geometryData || !geometryData.attributes) return geometry;
         const positions = geometryData.attributes.POSITION;
         const positions32 = new Float32Array(positions);
         geometry.setAttribute('position', new BufferAttribute(positions32, 3));
@@ -152,8 +163,8 @@ export class NodeDataWrapper implements NodeData {
     makeMeshBuffer() {
         const geom = new BufferGeometry();
 
-        const geometryData = GeometryConverter.convertNodeToGeometryData(this);
-        if (!geometryData) return;
+        const geometryData = speckleGeometryConverter.convertNodeToGeometryData(this);
+        if (!geometryData || !geometryData.attributes || !geometryData.attributes.INDEX) return;
         const indices = geometryData.attributes.INDEX;
         const positions = geometryData.attributes.POSITION;
 
@@ -163,7 +174,9 @@ export class NodeDataWrapper implements NodeData {
         // Set the indices from the props
         geom.setIndex(new BufferAttribute(new Uint16Array(indices), 1));
 
-        generateUVs(geom, true);
+        //Note, this is confusing, but although the viewer uses "y up" coordinates, all the geometry
+        //from Speckle is coming through in the original "z up" coordinates
+        generateUVs(geom, false, this.uvBoundsRectangle);
 
         this.applyTransforms(geom, geometryData);
 
