@@ -4,11 +4,11 @@ import { speckleStore, NodeDataWrapper } from '../speckle';
 import { LineBuffer } from './LineBuffer';
 import BaseImage, { type BaseImageProps, type Rect } from './BaseImage';
 import { observer } from 'mobx-react-lite';
-import { cullSpaces } from '../utils';
+import { cullSpaces, hexStringToNumber } from '../utils';
 import { useRef } from "react";
-import { EffectComposer, Outline, Select, Selection } from "@react-three/postprocessing";
+import { EffectComposer, Outline, Select, Selection, Bloom } from "@react-three/postprocessing";
 // import { BlendFunction } from "postprocessing";
-import { type MaterialAttributes, MeshView } from "./MeshView.tsx";
+import { MeshView } from "./MeshView.tsx";
 import './SpeckleScene.scss';
 import { useZoomControls, type ViewerZoomEvents } from "./hooks/useZoomControls.ts";
 import type { EventEmitter } from "@strategies/react-events";
@@ -20,9 +20,10 @@ type MeshListSelectViewProps = {
     allMeshes: NodeDataWrapper[],
     visibleMeshes: NodeDataWrapper[],
     materialCache: { [key: string]: Material },
-    colorById: { [id: string]: ColorProps },
     receiveShadow: boolean
 };
+
+
 
 //NOTE: we use allMeshes and visibleMeshes because it's better to not mount/unmount components for fast updates - so we mount them all, but control visibility
 type ColorProps = { color: string, opacity: number, flat?: boolean };
@@ -34,9 +35,8 @@ const MeshListSelectView = observer(({
                                          visibleMeshes,
                                          materialCache,
                                          receiveShadow,
-                                         colorById
                                      }: MeshListSelectViewProps) => {
-    const { visualizerStore } = speckleStore;
+    const { appearanceStore } = speckleStore;
     return <Select enabled={selectIsEnabled}>
         {allMeshes.map(geometry => (
             <MeshView
@@ -47,63 +47,15 @@ const MeshListSelectView = observer(({
                 }}
                 key={geometry.id}
                 geometryWrapper={geometry}
-                materialAttributes={getMaterialAttributes(geometry, colorById)}
+                appearance={appearanceStore!.computeAppearance(geometry)}
                 materialCache={materialCache}
                 castShadow
                 receiveShadow={receiveShadow}
                 visible={visibleMeshes.indexOf(geometry) >= 0}
-                label={nameGeometry(geometry)}
             />
         ))}
     </Select>
 });
-
-const getLineMaterialAttributes = (geometry: NodeDataWrapper, colorById: {
-    [id: string]: ColorProps
-}): MaterialAttributes & {lineWidth:number} => {
-    //TODO a lot this is getting pretty use-case specific
-    //in the general r3f-speckle viewer we should only be passing
-    //material attributes
-    //even concepts like "selection" don't belong here
-    //although we do need a way to manage the outer glow elements
-    //perhaps those could just have a 'glow' attribute?
-
-    let lineWidth = 2;
-    const { visualizerStore } = speckleStore;
-    if (visualizerStore) {
-        if (visualizerStore.nodeIsSelected(geometry)) {
-            lineWidth = 4;
-        }
-    }
-    return { ...getMaterialAttributes(geometry, colorById), lineWidth };
-}
-
-const getMaterialAttributes = (geometry: NodeDataWrapper, colorById: {
-    [id: string]: ColorProps
-}): MaterialAttributes => {
-    const { visualizerStore } = speckleStore;
-    if (!visualizerStore) return { color: '#ffffff' };
-
-    let id = visualizerStore.getId(geometry);
-
-    let colorState = colorById[id];
-
-    if (colorState && colorState.opacity < 1) {
-        return {
-            ...colorState,
-            transparent: true,
-        };
-    }
-    return colorState || { color: '#ffffff' };
-}
-
-const nameGeometry = (geometry: NodeDataWrapper) => {
-    const { visualizerStore } = speckleStore;
-    if (!visualizerStore) return '-';
-    let id = visualizerStore.getId(geometry);
-    const ans = visualizerStore.nameById[id] || '';
-    return cullSpaces(ans);
-};
 
 export type CameraController = EventEmitter<ViewerZoomEvents & ViewModeEvents> & { settings: CameraControlSettings };
 type SceneProps = {
@@ -122,21 +74,18 @@ function Scene(props: SceneProps) {
     });
     const { displayLines, displayBase, selfShading, displayMeshes } = useControls({
         displayMeshes: true,
-        displayLines: false,
+        displayLines: true,
         displayBase: true,
         selfShading: false,
     });
 
-    const { visualizerStore } = speckleStore;
-    let colorById: { [id: string]: ColorProps } = {}
-    if (visualizerStore) {
-        colorById = visualizerStore.colorById;
-    }
+    const { appearanceStore } = speckleStore;
 
     const controlsRef = useRef<CameraControls>(null);
 
-    useZoomControls(controlsRef, cameraController, speckleStore.selectedMeshes);
+    useZoomControls(controlsRef, cameraController, speckleStore.glowMeshes);
 
+    const outlineProperties = appearanceStore!.getOuterGlowValues();
     return (
         <>
             <ambientLight color={'#999'}/>
@@ -146,24 +95,21 @@ function Scene(props: SceneProps) {
                 <EffectComposer autoClear={false}>
                     <Outline
                         // blendFunction={BlendFunction.ALPHA}
-                        visibleEdgeColor={0x509fc9}
-                        hiddenEdgeColor={0x7e86b9}
+                        {...outlineProperties}
                         blur={true}
-                        edgeStrength={8}/>
+                    />
                 </EffectComposer>
                 <MeshListSelectView
                     selectIsEnabled={true}
-                    colorById={colorById}
                     allMeshes={speckleStore.includedMeshes}
-                    visibleMeshes={speckleStore.selectedMeshes}
+                    visibleMeshes={speckleStore.glowMeshes}
                     materialCache={materialCache.current}
                     receiveShadow={selfShading}
                 />
                 <MeshListSelectView
                     selectIsEnabled={false}
-                    colorById={colorById}
                     allMeshes={speckleStore.includedMeshes}
-                    visibleMeshes={speckleStore.unselectedMeshes}
+                    visibleMeshes={speckleStore.noGlowMeshes}
                     materialCache={materialCache.current}
                     receiveShadow={selfShading}
                 />
@@ -172,7 +118,7 @@ function Scene(props: SceneProps) {
             {displayLines &&
                 speckleStore.includedLines.map(geometry => {
                     return <LineBuffer key={geometry.id}
-                                       materialAttributes={getLineMaterialAttributes(geometry, colorById)}
+                                       appearance={appearanceStore!.computeAppearance(geometry)}
                                        bufferGeometry={geometry.lineGeometry}/>;
                 })}
             {displayBase &&

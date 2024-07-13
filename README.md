@@ -111,5 +111,5 @@ Here:
 In target solution:
 1. Search and replace in package.json
 2. Run `pnpm install`
-3. Delete older build folders folders
+3. Delete older folders in node_modules/.pnpm
 4. Restart dev server

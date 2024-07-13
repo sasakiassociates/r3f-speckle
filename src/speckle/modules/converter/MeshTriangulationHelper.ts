@@ -157,6 +157,8 @@ class Vector3 {
   }
 
   mul(n: number): Vector3 {
+    //NOTE, I can't understand why it would use subtraction, but the active Speckle branch has this as below...
+    // return new Vector3(this.x - n, this.y - n, this.z - n)
     return new Vector3(this.x * n, this.y * n, this.z * n)
   }
 

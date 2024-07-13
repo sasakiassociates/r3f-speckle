@@ -8,6 +8,18 @@ import { Viewer } from "@strategies/r3f-speckle/r3f";
 
 export type AppProps = {};
 
+const streamOptions: { name: string, streamId: string, commitObjectId: string, magpie?: boolean }[] = [
+    { name: 'Simple Rhino named objects stream', streamId: 'fe5fd4f37c', commitObjectId: '127bbf253d7aa72e1d3c4425ebd2b168' },
+    { name: 'Simple Blender stream', streamId: '25a13f78fa', commitObjectId: '5679176eb6a4057f42553de135911fd6' },
+    { name: 'Yumana Blender stream', streamId: '25a13f78fa', commitObjectId: 'd447a9eabc12cf6ac8603a5c8685491e' },
+    {
+        name: 'SLP Magpie stream',
+        streamId: '2a7f62dd54',
+        commitObjectId: '158d6ad2474520a3003fae9aaf689c98',
+        magpie: true
+    },
+];
+
 const App = (props: AppProps) => {
     const mapControls = useRef(new MapControls());
 
@@ -21,7 +33,7 @@ const App = (props: AppProps) => {
         if (!mainStore.isConnecting) {
             (async () => {
                 await mainStore.loadFromUrlParams();
-                setTimeout(()=> {
+                setTimeout(() => {
                     mapControls.current.setView('45')
                 }, 100)
             })();
@@ -33,37 +45,45 @@ const App = (props: AppProps) => {
     }, [simplifiedPanning]);
 
     useEffect(() => {
-        mainStore.visualizerStore.setOpacity(opacity)
+        mainStore.appearanceStore.setOpacity(opacity)
     }, [opacity]);
 
     useEffect(() => {
-        mainStore.visualizerStore.setFlatMaterials(flat)
+        mainStore.appearanceStore.setFlatMaterials(flat)
     }, [flat]);
 
     const location = window.location;
 
-    const generateUrlWithParams = (streamId: string, commitObjectId: string) => {
+    const generateUrlWithParams = (streamId: string, commitObjectId: string, magpie?: boolean) => {
         const searchParams = new URLSearchParams(location.search);
 
         searchParams.set('streamId', streamId);
         searchParams.set('commitObjectId', commitObjectId);
+        if (magpie) {
+            searchParams.set('magpie', 'true');
+        }
 
         return `${location.pathname}?${searchParams.toString()}`;
     };
     return <div>
         <h1>Basic example</h1>
-        <p>A bare-bones example showing how to load a speckle stream and connect it to the 3D viewer. This does not rely
+        <p>Example showing how to load a speckle stream and connect it to the 3D viewer. This may not rely
             on Rhino/GH/Magpie and is therefore intended to show Speckle + R3F connector very generally.</p>
 
         {mainStore.connectionError && <div className={'error-message'}>{mainStore.connectionError}</div>}
-        {!(mainStore.isConnecting || mainStore.connectedToStream) &&
-            <a href={generateUrlWithParams('25a13f78fa', '9d3ee826aa4e567d504e2ba0a0a075d5')}>Example stream</a>}
+        {!(mainStore.isConnecting || mainStore.connectedToStream) && <div>
+            {streamOptions.map(p =>
+                <p key={p.name}>
+                    <a href={generateUrlWithParams(p.streamId, p.commitObjectId, p.magpie)}>{p.name}</a>
+                </p>
+            )}
+        </div>}
 
         {mainStore.connectedToStream &&
             <div>
                 <Viewer
                     cameraController={mapControls.current}
-                    />
+                />
                 <Toolbar mapControls={mapControls.current}/>
             </div>
         }

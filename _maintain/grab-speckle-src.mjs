@@ -8,7 +8,7 @@ import {replaceUnwantedHeaders} from "./overrides.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const LOCAL_BASE_PATH = path.join(__dirname, '../src/speckle');
+const LOCAL_BASE_PATH = path.join(__dirname, './incoming');
 const deriveLocalPath = (url) => {
     const srcIndex = url.indexOf('/src/');
     if (srcIndex === -1) {

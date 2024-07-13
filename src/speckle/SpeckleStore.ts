@@ -1,6 +1,6 @@
 import { action, computed, makeObservable, observable } from "mobx";
 import type { NodeDataWrapper } from "./NodeDataWrapper";
-import type { VisualizerStore } from "../store";
+import type { AppearanceStore } from "../store";
 
 export class SpeckleStore {
     @observable
@@ -13,7 +13,7 @@ export class SpeckleStore {
     baseImages: NodeDataWrapper[] = [];
 
     @observable
-    visualizerStore?: VisualizerStore;
+    appearanceStore?: AppearanceStore;
 
     constructor() {
         makeObservable(this);
@@ -51,42 +51,41 @@ export class SpeckleStore {
 
     @computed
     get includedLines() {
-        const visualizerStore = this.visualizerStore;
-        if (!visualizerStore) return this.loadedLines;
-        return this.loadedLines.filter(n => visualizerStore.includeNode(n));
+        const appearanceStore = this.appearanceStore;
+        if (!appearanceStore) return this.loadedLines;
+        return this.loadedLines.filter(n => appearanceStore.computeAppearance(n).visible);
     }
 
     @computed
     get includedMeshes() {
-        const visualizerStore = this.visualizerStore;
-        if (!visualizerStore) return this.loadedMeshes;
-        return this.loadedMeshes.filter(n => visualizerStore.includeNode(n));
+        const appearanceStore = this.appearanceStore;
+        if (!appearanceStore) return this.loadedMeshes;
+        return this.loadedMeshes.filter(n => appearanceStore.computeAppearance(n).visible);
     }
 
     @computed
     get includedBaseImages() {
-        const visualizerStore = this.visualizerStore;
-        if (!visualizerStore) return this.loadedBaseImages;
-        return this.loadedBaseImages.filter(n => visualizerStore.includeNode(n));
+        const appearanceStore = this.appearanceStore;
+        if (!appearanceStore) return this.loadedBaseImages;
+        return this.loadedBaseImages.filter(n => appearanceStore.computeAppearance(n).visible);
     }
 
     @computed
-    get selectedMeshes() : NodeDataWrapper[] {
-        const visualizerStore = this.visualizerStore;
-        if (!visualizerStore) return [];
-        return this.includedMeshes.filter(n => visualizerStore.nodeIsSelected(n));
+    get glowMeshes() : NodeDataWrapper[] {
+        const appearanceStore = this.appearanceStore;
+        if (!appearanceStore) return [];
+        return this.includedMeshes.filter(n => appearanceStore.computeAppearance(n).outerGlow);
     }
 
     @computed
-    get unselectedMeshes() : NodeDataWrapper[] {
-        const visualizerStore = this.visualizerStore;
-        if (!visualizerStore) return this.includedMeshes;
-        return this.includedMeshes.filter(n => !visualizerStore.nodeIsSelected(n));
+    get noGlowMeshes() : NodeDataWrapper[] {
+        const appearanceStore = this.appearanceStore;
+        if (!appearanceStore) return [];
+        return this.includedMeshes.filter(n => !appearanceStore.computeAppearance(n).outerGlow);
     }
 
-    setVisualizerStore<T extends VisualizerStore>(visualizer: T) {
-        this.visualizerStore = visualizer;
-        this.visualizerStore.setSpeckleStore(this);
+    setAppearanceStore<T extends AppearanceStore>(appearanceStore: T) {
+        this.appearanceStore = appearanceStore;
     }
 }
 
