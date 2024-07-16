@@ -1,4 +1,3 @@
-import React from 'react'
 import { Canvas } from '@react-three/fiber';
 import { observer } from "mobx-react-lite";
 import { useMemo, useRef } from "react";
@@ -53,10 +52,11 @@ const BufferLine = ({ bufferGeometry }: LineProps) => {
 //TODO why are base images treated differently from meshes and lines? I guess they currently are manually specified
 //but when they come in from Speckle we should treat them like other Speckle elements
 type ViewerProps = {
-    cameraController: CameraController
+    cameraController: CameraController,
+    children?: React.ReactNode;
 };
 export const Viewer = observer((props: ViewerProps) => {
-    const { cameraController} = props;
+    const { cameraController, children} = props;
     // let palette = fillColors();
     //keep track of how many times this has rendered
     const renderCount = useRef(0);
@@ -87,6 +87,7 @@ export const Viewer = observer((props: ViewerProps) => {
                 {/*<ShadowGroupScene/>*/}
                 <SpeckleScene cameraController={cameraController}/>
             </Canvas>
+            {children}
         </div>
     );
 });

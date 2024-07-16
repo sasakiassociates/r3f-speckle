@@ -5,6 +5,7 @@ import { mainStore } from "../core/MainStore.ts";
 import { useControls } from 'leva';
 import { MapControls, Toolbar } from "./Toolbar.tsx";
 import { Viewer } from "@strategies/r3f-speckle/r3f";
+import BasicOverlay from "./BasicOverlay.tsx";
 
 export type AppProps = {};
 
@@ -82,8 +83,9 @@ const App = (props: AppProps) => {
         {mainStore.connectedToStream &&
             <div>
                 <Viewer
-                    cameraController={mapControls.current}
-                />
+                    cameraController={mapControls.current}>
+                    {/*<BasicOverlay/>*/}
+                </Viewer>
                 <Toolbar mapControls={mapControls.current}/>
             </div>
         }

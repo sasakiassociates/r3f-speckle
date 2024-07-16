@@ -59,6 +59,7 @@ export class BasicDataManager extends SpeckleDataManager {
             for (let mesh of meshes) {
                 for (let geometryObj of mesh) {
                     let materialName = geometryObj.renderMaterial?.name;
+                    let id = mesh.id || geometryObj.id;
                     let textureCoordinates = geometryObj.textureCoordinates;
                     if (textureCoordinates && textureCoordinates.length > 0) {
                         // console.log('textureCoordinates', textureCoordinates);
@@ -68,11 +69,17 @@ export class BasicDataManager extends SpeckleDataManager {
                     } else {
                         // console.log("mesh", mesh);
                         const w = this.addMesh(geometryObj,
-                            { id: mesh.id, materialName });
-                        if (w) w.events.on('click', (e) => {
-                            // console.log('calling toggleSelectOnNode');
-                            this.mainStore.appearanceStore.toggleSelectOnNode(mesh.id)
-                        });
+                            { id, materialName });
+                        if (w) {
+                            w.events.on('click', (e) => {
+                                // console.log('calling toggleSelectOnNode');
+                                this.mainStore.appearanceStore.toggleSelectOnNode(id)
+                            });
+                            w.events.on('positionUpdate', (e) => {
+                                // console.log('calling setScreenPosition', id);
+                                this.mainStore.setScreenPosition(id, e.position)
+                            });
+                        }
                     }
 
                 }

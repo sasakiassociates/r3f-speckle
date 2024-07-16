@@ -27,7 +27,7 @@ export class AppearanceNodeWrapper extends NodeDataWrapper {
         const general = {
             outerGlow: isSelected,
             opacity: isSelected ? 1 : this.appearanceStore.opacity / 100,
-            style: (isSelected ? 'solid' : (this.appearanceStore.flatMaterials) ? 'flat' : 'translucent') as MeshMaterialStyle,
+            style: (isSelected ? 'solid' : (this.appearanceStore.flatMaterials) ? 'flat' : 'solid') as MeshMaterialStyle,
             visible: true,
         };
         if (isSelected) {

@@ -20,6 +20,9 @@ export class MainStore {
     @observable
     isReady = false;
 
+    @observable
+    screenPositions: { [p: string]: { x: number, y: number } } = {};
+
     appearanceStore: BasicAppearanceStore;
     speckleLoader: BasicSpeckleLoader;
     dataManager: SpeckleDataManager;
@@ -102,6 +105,11 @@ export class MainStore {
             // }
 // console.log('authToken got', authToken);
         }
+    }
+
+    @action
+    setScreenPosition(id:string, position: { x: number; y: number }) {
+        this.screenPositions[id] = position;
     }
 }
 
