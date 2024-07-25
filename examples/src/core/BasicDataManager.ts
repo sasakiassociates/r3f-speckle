@@ -77,7 +77,22 @@ export class BasicDataManager extends SpeckleDataManager {
                             });
                             w.events.on('positionUpdate', (e) => {
                                 // console.log('calling setScreenPosition', id);
-                                this.mainStore.setScreenPosition(id, e.position)
+                                let sumX = 0;
+                                let sumY = 0;
+                                for (let p of e.positions) {
+                                    sumX += p.x;
+                                    sumY += p.y;
+                                }
+                                if (e.positions.length === 0) {
+                                    this.mainStore.setScreenPosition(id, { x: -999, y: -999 });
+                                } else {
+                                    const avgPosition = {
+                                        x: sumX / e.positions.length,
+                                        y: sumY / e.positions.length
+                                    };
+                                    this.mainStore.setScreenPosition(id, avgPosition);
+                                }
+
                             });
                         }
                     }

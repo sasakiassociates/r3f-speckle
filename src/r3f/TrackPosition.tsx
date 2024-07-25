@@ -4,26 +4,29 @@ import { Box3, type Object3D, Vector3 } from "three";
 
 interface TrackPositionProps {
     objectRef: MutableRefObject<Object3D | null>;
-    onPositionUpdate: (position: { x: number, y: number }) => void;
-    center?: Vector3;
+    onPositionUpdate: (positions: { x: number, y: number }[]) => void;
+    points: Vector3[];
 }
 
-const TrackPosition = ({ onPositionUpdate, objectRef, center }: TrackPositionProps) => {
+const TrackPosition = ({ onPositionUpdate, objectRef, points }: TrackPositionProps) => {
     const { camera, size } = useThree();
-    const [lastPosition, setLastPosition] = useState<{ x: number; y: number } | null>(null);
+    const [lastPositions, setLastPositions] = useState<{ x: number; y: number }[]>([]);
 
     const boxRef = useRef(new Box3());
     const centerRef = useRef(new Vector3());
 
     useFrame(() => {
         if (objectRef.current) {
-            let centerV3;
-            if (center) {
-                centerV3 = new Vector3(
-                    center.x,
-                    center.y,
-                    center.z
-                );
+            const pointsV3: Vector3[] = [];
+
+            if (points.length > 0) {
+                for (let point of points) {
+                    pointsV3.push(new Vector3(
+                        point.x,
+                        point.y,
+                        point.z
+                    ));
+                }
             } else {
                 // Update the bounding box from the object
                 boxRef.current.setFromObject(objectRef.current);
@@ -32,22 +35,44 @@ const TrackPosition = ({ onPositionUpdate, objectRef, center }: TrackPositionPro
                 // Project the center to screen coordinates
                 centerRef.current.project(camera);
 
-                centerV3 = new Vector3(
+                pointsV3.push(new Vector3(
                     centerRef.current.x,
                     centerRef.current.y,
                     centerRef.current.z
-                );
+                ));
 
             }
 
-            centerV3.project(camera);
+            const positions: { x: number; y: number }[] = [];
+            for (let pointV3 of pointsV3) {
+                pointV3.project(camera);
 
-            const x = (centerV3.x * 0.5 + 0.5) * size.width;
-            const y = (centerV3.y * -0.5 + 0.5) * size.height;
+                if (pointV3.z >= -1 && pointV3.z <= 1 && pointV3.x >= -1 && pointV3.y >= -1 && pointV3.x <= 1 && pointV3.y <= 1) {
+                    const x = (pointV3.x * 0.5 + 0.5) * size.width;
+                    const y = (pointV3.y * -0.5 + 0.5) * size.height;
+                    positions.push({ x, y })
+                } else {
+                    // console.log('point behind camera', pointV3);
+                }
+            }
 
-            if (!lastPosition || x !== lastPosition.x || y !== lastPosition.y) {
-                onPositionUpdate({ x, y });
-                setLastPosition({ x, y });
+            let changed = false;
+            if (lastPositions.length != positions.length) {
+                changed = true;
+            } else {
+                for (let i = 0; i < positions.length; i++) {
+                    const p1 = positions[i];
+                    const p2 = lastPositions[i];
+                    if (p1.x !== p2.x || p1.y !== p2.y) {
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            if (changed) {
+                onPositionUpdate(positions);
+                setLastPositions(positions);
             }
         }
     });

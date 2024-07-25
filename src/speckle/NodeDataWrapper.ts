@@ -14,7 +14,7 @@ import { SpeckleGeometryConverter } from "./modules/converter/SpeckleGeometryCon
 
 type NodeEventArgs = {
     click: { event: ThreeEvent<MouseEvent> };
-    positionUpdate: { position: { x: number, y: number } };
+    positionUpdate: { positions: { x: number, y: number }[] };
 };
 
 export class NodeEvents extends EventEmitter<NodeEventArgs> {

@@ -84,7 +84,7 @@ const App = (props: AppProps) => {
             <div>
                 <Viewer
                     cameraController={mapControls.current}>
-                    {/*<BasicOverlay/>*/}
+                    <BasicOverlay/>
                 </Viewer>
                 <Toolbar mapControls={mapControls.current}/>
             </div>

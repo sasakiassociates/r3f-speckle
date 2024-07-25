@@ -54,7 +54,7 @@ const useMaterial = (materialProps: MaterialAttributes, materialCache: { [key: s
                     newMaterial = new MeshBasicMaterial({ ...remProps, map: texture });
                     break;
                 default:
-                    newMaterial = new MeshStandardMaterial({ side: DoubleSide,flatShading: true, ...matProps });
+                    newMaterial = new MeshStandardMaterial({ side: DoubleSide, flatShading: true, ...matProps });
             }
             materialCache[key] = newMaterial;
         }
@@ -74,15 +74,22 @@ export const MeshView = ((props: MeshViewProps) => {
 
         const material = useMaterial(appearance, materialCache);
 
-        const center = useMemo(() => {
+        const { trackPoints, center } = useMemo(() => {
             geometryWrapper.meshGeometry?.computeBoundingBox();
             const boxCenter = new Vector3();
-            geometryWrapper.meshGeometry?.boundingBox?.getCenter(boxCenter);
-            return boxCenter;
+            const trackPoints: Vector3[] = [];
+            const boundingBox = geometryWrapper.meshGeometry?.boundingBox;
+            if (boundingBox) {
+                boundingBox.getCenter(boxCenter);
+                trackPoints.push(boundingBox.min);
+                trackPoints.push(boxCenter);
+                trackPoints.push(boundingBox.max);
+            }
+            return { center: boxCenter, trackPoints };
         }, [geometryWrapper.meshGeometry]);
 
         const label = appearance.label;
-            //`${center.x.toFixed(1)},${center.y.toFixed(1)},${center.z.toFixed(1)}`;
+        //`${center.x.toFixed(1)},${center.y.toFixed(1)},${center.z.toFixed(1)}`;
         // if (appearance.style === 'texture') {
         //     return <TempBox appearance={appearance} materialCache={materialCache}/>
         // }
@@ -101,9 +108,9 @@ export const MeshView = ((props: MeshViewProps) => {
                     </Html>
                 )}
             </mesh>
-            <TrackPosition center={center} onPositionUpdate={(position) => {
+            <TrackPosition points={trackPoints} onPositionUpdate={(positions) => {
                 // console.log('positionUpdate', position)
-                geometryWrapper.events.broadcast('positionUpdate', { position })
+                geometryWrapper.events.broadcast('positionUpdate', { positions })
             }} objectRef={ref}/>
         </>
     })
