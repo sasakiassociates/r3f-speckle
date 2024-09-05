@@ -88,7 +88,10 @@ export class MainStore {
         if (streamId && authToken && commitObjectId) {
             runInAction(() => this.isConnecting = true);
 
-            await this.speckleLoader.construct(server, authToken, streamId, commitObjectId);
+            const commitObjectIdParts = commitObjectId.split(',');
+            for (let oId of commitObjectIdParts) {
+                await this.speckleLoader.construct(server, authToken, streamId, oId);
+            }
 
             runInAction(() => {
                 this.isConnecting = false

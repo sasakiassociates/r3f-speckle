@@ -53,10 +53,12 @@ const BufferLine = ({ bufferGeometry }: LineProps) => {
 //but when they come in from Speckle we should treat them like other Speckle elements
 type ViewerProps = {
     cameraController: CameraController,
+    showAxis?: boolean,
+    lightIntensity?: number,
     children?: React.ReactNode;
 };
 export const Viewer = observer((props: ViewerProps) => {
-    const { cameraController, children} = props;
+    const { cameraController, children, showAxis, lightIntensity} = props;
     // let palette = fillColors();
     //keep track of how many times this has rendered
     const renderCount = useRef(0);
@@ -74,7 +76,7 @@ export const Viewer = observer((props: ViewerProps) => {
                 // onCreated={({ camera }) => cameraStore?.setCamera(camera)}
                 flat={!toneMapping}
             >
-                <axesHelper args={[1]}/>
+                {showAxis && <axesHelper args={[1]}/>}
                 {/*<ambientLight color={'#cccccc'}/>*/}
                 {/*<directionalLight intensity={2} color={'white'} position={[100, 100, 10]}/>*/}
                 {/*<SpeckleStage>*/}
@@ -85,7 +87,7 @@ export const Viewer = observer((props: ViewerProps) => {
                 {/*<ShadowScene minimumGroundY={-2}/>*/}
                 {/*<LayersTest/>*/}
                 {/*<ShadowGroupScene/>*/}
-                <SpeckleScene cameraController={cameraController}/>
+                <SpeckleScene lightIntensity={lightIntensity || 3.3} cameraController={cameraController}/>
             </Canvas>
             {children}
         </div>

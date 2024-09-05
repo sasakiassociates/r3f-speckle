@@ -6,6 +6,7 @@ import type ObjectLoader from "@speckle/objectloader";
 import type { NodeDataWrapper } from "@strategies/r3f-speckle/speckle";
 import { data } from "autoprefixer";
 import { AppearanceNodeWrapper } from "./AppearanceNodeWrapper.ts";
+import type { BasicSpeckleLoader } from "./BasicSpeckleLoader.ts";
 
 export class BasicDataManager extends SpeckleDataManager {
     private mainStore: MainStore;
@@ -26,7 +27,14 @@ export class BasicDataManager extends SpeckleDataManager {
         console.log(speckleData);
 
         //material color gleaned from displayValue.renderMaterial.name
-//elements[0].elements[0]["@displayValue"][0].renderMaterial.name
+        //elements[0].elements[0]["@displayValue"][0].renderMaterial.name
+
+        if (speckleData["@Basemap"]) {
+            let baseImage = speckleData["@Basemap"]["@{0}"][0];
+            const streamUrl = (this.speckleLoader as BasicSpeckleLoader).getStreamUrl();
+            this.addBaseImage(baseImage, streamUrl);
+            return;
+        }
 
         const meshes: any = [];
 
@@ -76,7 +84,6 @@ export class BasicDataManager extends SpeckleDataManager {
                                 this.mainStore.appearanceStore.toggleSelectOnNode(id)
                             });
                             w.events.on('positionUpdate', (e) => {
-                                // console.log('calling setScreenPosition', id);
                                 let sumX = 0;
                                 let sumY = 0;
                                 for (let p of e.positions) {

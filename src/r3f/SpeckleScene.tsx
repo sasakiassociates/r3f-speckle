@@ -59,6 +59,7 @@ const MeshListSelectView = observer(({
 
 export type CameraController = EventEmitter<ViewerZoomEvents & ViewModeEvents> & { settings: CameraControlSettings };
 type SceneProps = {
+    lightIntensity: number,
     cameraController: CameraController
 };
 
@@ -70,7 +71,7 @@ function Scene(props: SceneProps) {
 
     const { lightPosition, lightIntensity } = useControls({
         lightPosition: { value: [3, 5, 2], label: 'vec' },
-        lightIntensity: { value: 2, min: 0, max: 10, step: 0.1 },
+        lightIntensity: { value: props.lightIntensity, min: 0, max: 10, step: 0.1 },
     });
     const { displayLines, displayBase, selfShading, displayMeshes } = useControls({
         displayMeshes: true,

@@ -13,6 +13,7 @@ export abstract class SpeckleDataManager {
         if (!this.offset) {
             const firstVertex = new Vector3().fromArray(wrapper.makeMeshBuffer()!.attributes.position.array, 0);
             this.offset = firstVertex.negate(); // This will invert the coordinates of the first vertex
+            console.log('Calculated auto offset', this.offset.x, this.offset.y, this.offset.z);
         }
         wrapper.setOffset(this.offset);
     }
