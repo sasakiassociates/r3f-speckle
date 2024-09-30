@@ -10,6 +10,7 @@ import BasicOverlay from "./BasicOverlay.tsx";
 export type AppProps = {};
 
 const streamOptions: { name: string, streamId: string, commitObjectId: string, magpie?: boolean }[] = [
+
     { name: 'Simple Rhino named objects stream', streamId: 'fe5fd4f37c', commitObjectId: '127bbf253d7aa72e1d3c4425ebd2b168' },
     { name: 'Simple Blender stream', streamId: '25a13f78fa', commitObjectId: '5679176eb6a4057f42553de135911fd6' },
     { name: 'Yumana Blender stream', streamId: '25a13f78fa', commitObjectId: 'd447a9eabc12cf6ac8603a5c8685491e' },
@@ -19,13 +20,20 @@ const streamOptions: { name: string, streamId: string, commitObjectId: string, m
         commitObjectId: '158d6ad2474520a3003fae9aaf689c98',
         magpie: true
     },
+    {
+        name: 'SLP Magpie lite',
+        streamId: 'ee8f2a416d',
+        commitObjectId: '66991266e6bb10638518abdcdced09c6',
+        magpie: true
+    },
 ];
 
 const App = (props: AppProps) => {
     const mapControls = useRef(new MapControls());
 
-    const { flat, opacity, simplifiedPanning } = useControls({
+    const { flat, opacity, emissiveIntensity, simplifiedPanning } = useControls({
         opacity: { value: 50, min: 0, max: 100, step: 5 },
+        emissiveIntensity: { value: 50, min: 0, max: 200, step: 5 },
         flat: true,
         simplifiedPanning: false
     });
@@ -48,6 +56,10 @@ const App = (props: AppProps) => {
     useEffect(() => {
         mainStore.appearanceStore.setOpacity(opacity)
     }, [opacity]);
+
+    useEffect(() => {
+        mainStore.appearanceStore.setEmissiveIntensity(emissiveIntensity)
+    }, [emissiveIntensity]);
 
     useEffect(() => {
         mainStore.appearanceStore.setFlatMaterials(flat)

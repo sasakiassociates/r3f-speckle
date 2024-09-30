@@ -16,6 +16,9 @@ export class BasicAppearanceStore extends AppearanceStore {
     opacity: number = 0.25;
 
     @observable
+    emissiveIntensity: number = 0.25;
+
+    @observable
     flatMaterials: boolean = false;
 
     @observable
@@ -46,6 +49,10 @@ export class BasicAppearanceStore extends AppearanceStore {
     @action
     setOpacity(opacity: number) {
         this.opacity = opacity;
+    }
+    @action
+    setEmissiveIntensity(v: number) {
+        this.emissiveIntensity = v;
     }
 
     @action

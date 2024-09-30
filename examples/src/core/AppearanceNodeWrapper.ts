@@ -27,7 +27,8 @@ export class AppearanceNodeWrapper extends NodeDataWrapper {
         const general = {
             outerGlow: isSelected,
             opacity: isSelected ? 1 : this.appearanceStore.opacity / 100,
-            style: (isSelected ? 'solid' : (this.appearanceStore.flatMaterials) ? 'flat' : 'solid') as MeshMaterialStyle,
+            emissiveIntensity: isSelected ? 0 : this.appearanceStore.emissiveIntensity / 100,
+            style: 'solid' as MeshMaterialStyle,// (isSelected ? 'solid' : (this.appearanceStore.flatMaterials) ? 'flat' : 'solid') as MeshMaterialStyle,
             visible: true,
         };
         if (isSelected) {
@@ -43,11 +44,13 @@ export class AppearanceNodeWrapper extends NodeDataWrapper {
         if (this.metadata?.isBaseImage) {
             return { ...general, style:'texture', color: this.metadata?.imageUrl };
         }
-        //TEMP test
-        if (this.materialName.startsWith('Texture') || this.metadata?.isBaseImage) {
-            return { ...general, style:'texture', color: "https://sasaki.speckle.xyz/api/stream/2a7f62dd54/blob/4b8470d1f6" };
+        // if (this.materialName.startsWith('Texture') || this.metadata?.isBaseImage) {
+        //     return { ...general, style:'texture', color: "https://sasaki.speckle.xyz/api/stream/2a7f62dd54/blob/4b8470d1f6" };
+        // }
+        if (this.metadata?.Color) {
+            return { ...general, color: this.metadata?.Color };
         }
-        return { ...general, color: "#d8c362" };
+        return { ...general, color: "#5f7f91" };
     }
 
     @computed

@@ -14,17 +14,19 @@ export type MeshMaterialStyle = 'flat' | 'solid' | 'translucent' | 'texture';
 export type MaterialAttributes = {
     color: string,
     opacity?: number,
+    emissiveIntensity?: number,
     transparent?: boolean,
     style?: MeshMaterialStyle
 };
 
 //another r3f method is to share materials via useResource https://codesandbox.io/p/sandbox/billowing-monad-bgnnt?file=%2Fsrc%2FApp3d.tsx
 const useMaterial = (materialProps: MaterialAttributes, materialCache: { [key: string]: Material }) => {
-    const pickMaterialAttributes = ({ color, opacity, style }: MaterialAttributes) => {
+    const pickMaterialAttributes = ({ color, opacity, style, emissiveIntensity }: MaterialAttributes) => {
         const opacityApplied = opacity === undefined ? 1 : opacity;
         return {
             color,
             opacity: opacityApplied,
+            emissiveIntensity: emissiveIntensity,
             transparent: opacityApplied < 1,
             style: style || 'solid'
         };
@@ -45,16 +47,19 @@ const useMaterial = (materialProps: MaterialAttributes, materialCache: { [key: s
                         maxOpacity: matProps.opacity * 4
                     });
                     break;
-                case 'flat':
-                    newMaterial = new MeshBasicMaterial({ side: DoubleSide, ...matProps });
+                case 'flat': {
+                    const { emissiveIntensity, ...remProps } = matProps;
+                    newMaterial = new MeshBasicMaterial({ side: DoubleSide, ...remProps });
                     break;
-                case 'texture':
-                    const { color, ...remProps } = matProps;
+                }
+                case 'texture': {
+                    const { color, emissiveIntensity, ...remProps } = matProps;
                     const texture = useLoader(TextureLoader, color);
-                    newMaterial = new MeshBasicMaterial({ ...remProps, map: texture });
+                    newMaterial = new MeshBasicMaterial({ ...remProps, depthWrite: false, map: texture });
                     break;
+                }
                 default:
-                    newMaterial = new MeshStandardMaterial({ side: DoubleSide, flatShading: true, ...matProps });
+                    newMaterial = new MeshStandardMaterial({ side: DoubleSide, emissive: matProps.color, flatShading: true, ...matProps });
             }
             materialCache[key] = newMaterial;
         }
@@ -98,6 +103,7 @@ export const MeshView = ((props: MeshViewProps) => {
                   key={geometryWrapper.id}
                   geometry={geometryWrapper.meshGeometry}
                   material={material}
+                  renderOrder={appearance.style === "texture" ? 0 : 1}
                   {...rest}
             >
                 {label && (
