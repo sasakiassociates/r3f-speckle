@@ -17,10 +17,12 @@
   "dependencies": {
     "@phosphor-icons/react": "^2.1.5",
     "@strategies/ui": "^1.17.24",
+    "firebase": "^10.8.0",
     "mobx": "^6.4.2",
     "mobx-react-lite": "^3.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-google-button": "^0.8.0",
     "vite-tsconfig-paths": "^4.3.2"
   },
   "scripts": {

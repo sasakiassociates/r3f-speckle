@@ -8,17 +8,26 @@ import {
     MagnifyingGlassMinus as ZoomOutIcon,
     MagnifyingGlassPlus as ZoomInIcon,
     Rows as SideIcon,
-    Stack as Icon45
+    Stack as Icon45,
+    FolderOpen as LoadIcon,
+    FloppyDisk as SaveIcon
+
 } from "@phosphor-icons/react";
 import { EventEmitter } from "@strategies/react-events";
 import type { ViewerZoomEvents, ViewModeEvents } from "@strategies/r3f-speckle/r3f";
 import { action, computed, makeObservable, observable } from "mobx";
 import { observer } from "mobx-react-lite";
+
 export class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents> {
     constructor() {
         super();
         makeObservable(this);
     }
+
+    savedView: {
+        orthoMode: boolean,
+        viewState?: string;
+    } = { orthoMode: false };
 
     @observable
     orthoMode = false;
@@ -34,6 +43,7 @@ export class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents>
         return {
             orthoMode: this.orthoMode,
             useSimplifiedPanning: this.useSimplifiedPanning,
+            initialView: localStorage.getItem('mapControls_initial_view') ?? undefined,
         }
     }
 
@@ -73,6 +83,23 @@ export class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents>
             this.emit('zoomExtents');
         }, 300);
     }
+
+    @action
+    restoreView() {
+        if (!this.savedView.viewState) return;
+        this.orthoMode = this.savedView.orthoMode;
+        this.emit('restoreView', {viewJson:  this.savedView.viewState, transition: true})
+    }
+
+    saveView() {
+        this.emit('requestViewState', (viewState) => {
+            this.savedView = {
+                orthoMode: this.orthoMode,
+                viewState
+            };
+            localStorage.setItem('mapControls_initial_view', viewState);
+        })
+    }
 }
 
 export const Toolbar = observer(({ mapControls }: {
@@ -105,6 +132,12 @@ export const Toolbar = observer(({ mapControls }: {
         </IconButton>
         <IconButton onClick={() => mapControls.setView('side')}>
             <SideIcon/>
+        </IconButton>
+        <IconButton onClick={() => mapControls.restoreView()}>
+            <LoadIcon/>
+        </IconButton>
+        <IconButton onClick={() => mapControls.saveView()}>
+            <SaveIcon/>
         </IconButton>
     </div>;
 });

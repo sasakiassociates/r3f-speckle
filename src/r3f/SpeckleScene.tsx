@@ -41,7 +41,7 @@ const MeshListSelectView = observer(({
         {allMeshes.map(geometry => (
             <MeshView
                 onClick={(e) => {
-                    console.log('MESH VIEW ONLCLICK');
+                    // console.log('MESH VIEW ONLCLICK');
                     e.stopPropagation();
                     geometry.events.broadcast('click', { event: e });
                 }}

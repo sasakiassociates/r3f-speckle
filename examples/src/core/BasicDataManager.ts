@@ -25,6 +25,7 @@ export class BasicDataManager extends SpeckleDataManager {
 
         console.log("speckleData");
         console.log(speckleData);
+        // console.log(speckleData.elements[0].elements.slice(0,50));
 
         //material color gleaned from displayValue.renderMaterial.name
         //elements[0].elements[0]["@displayValue"][0].renderMaterial.name
