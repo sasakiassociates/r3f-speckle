@@ -17,11 +17,11 @@ export const MultiView = observer(() => {
    return <div ref={ref} className={'canvas-parent'}>
         <View index={1} className="view1">
             <color attach="background" args={['#f0f0f0']}/>
-            <SpeckleScene cameraController={mapControls.current} baseImages={[]}/>
+            <SpeckleScene cameraController={mapControls.current} lightIntensity={3} />
         </View>
         <View index={2} className="view2">
             <color attach="background" args={['#d6edf3']}/>
-            <SpeckleScene cameraController={mapControls.current} baseImages={[]}/>
+            <SpeckleScene cameraController={mapControls.current}  lightIntensity={3}  />
         </View>
         <Canvas eventSource={ref.current!} className="canvas">
             <View.Port/>

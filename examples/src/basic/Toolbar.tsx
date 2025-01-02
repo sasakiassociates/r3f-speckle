@@ -18,9 +18,13 @@ import type { ViewerZoomEvents, ViewModeEvents } from "@strategies/r3f-speckle/r
 import { action, computed, makeObservable, observable } from "mobx";
 import { observer } from "mobx-react-lite";
 
-export class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents> {
+class MapControlsEventEmitter extends EventEmitter<ViewerZoomEvents & ViewModeEvents> {
+}
+
+
+export class MapControls  {
+    events: MapControlsEventEmitter = new MapControlsEventEmitter();
     constructor() {
-        super();
         makeObservable(this);
     }
 
@@ -58,29 +62,29 @@ export class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents>
     }
 
     zoomExtents() {
-        this.emit('zoomExtents');
+        this.events.emit('zoomExtents');
     }
 
     zoomToSelected() {
-        this.emit('zoomToSelected');
+        this.events.emit('zoomToSelected');
     }
 
     zoomIn() {
-        this.emit('zoomIn', this.zoomStrength);
+        this.events.emit('zoomIn', this.zoomStrength);
     }
 
     zoomOut() {
-        this.emit('zoomOut', this.zoomStrength);
+        this.events.emit('zoomOut', this.zoomStrength);
     }
 
     setView(view: 'top' | 'side' | '45') {
-        this.emit('setView', view);
+        this.events.emit('setView', view);
         // this.recenter();
     }
 
     recenter() {
         setTimeout(() => {
-            this.emit('zoomExtents');
+            this.events.emit('zoomExtents');
         }, 300);
     }
 
@@ -88,11 +92,11 @@ export class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents>
     restoreView() {
         if (!this.savedView.viewState) return;
         this.orthoMode = this.savedView.orthoMode;
-        this.emit('restoreView', {viewJson:  this.savedView.viewState, transition: true})
+        this.events.emit('restoreView', {viewJson:  this.savedView.viewState, transition: true})
     }
 
     saveView() {
-        this.emit('requestViewState', (viewState) => {
+        this.events.emit('requestViewState', (viewState) => {
             this.savedView = {
                 orthoMode: this.orthoMode,
                 viewState
