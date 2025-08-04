@@ -6,6 +6,7 @@ import type ObjectLoader from "@speckle/objectloader";
 import type { NodeDataWrapper } from "@strategies/r3f-speckle/speckle";
 import { data } from "autoprefixer";
 import { AppearanceNodeWrapper } from "./AppearanceNodeWrapper.ts";
+import type { BasicSpeckleLoader } from "./BasicSpeckleLoader.ts";
 
 export class BasicDataManager extends SpeckleDataManager {
     private mainStore: MainStore;
@@ -24,9 +25,17 @@ export class BasicDataManager extends SpeckleDataManager {
 
         console.log("speckleData");
         console.log(speckleData);
+        // console.log(speckleData.elements[0].elements.slice(0,50));
 
         //material color gleaned from displayValue.renderMaterial.name
-//elements[0].elements[0]["@displayValue"][0].renderMaterial.name
+        //elements[0].elements[0]["@displayValue"][0].renderMaterial.name
+
+        if (speckleData["@Basemap"]) {
+            let baseImage = speckleData["@Basemap"]["@{0}"][0];
+            const streamUrl = (this.speckleLoader as BasicSpeckleLoader).getStreamUrl();
+            this.addBaseImage(baseImage, streamUrl);
+            return;
+        }
 
         const meshes: any = [];
 
@@ -59,6 +68,7 @@ export class BasicDataManager extends SpeckleDataManager {
             for (let mesh of meshes) {
                 for (let geometryObj of mesh) {
                     let materialName = geometryObj.renderMaterial?.name;
+                    let id = mesh.id || geometryObj.id;
                     let textureCoordinates = geometryObj.textureCoordinates;
                     if (textureCoordinates && textureCoordinates.length > 0) {
                         // console.log('textureCoordinates', textureCoordinates);
@@ -68,11 +78,31 @@ export class BasicDataManager extends SpeckleDataManager {
                     } else {
                         // console.log("mesh", mesh);
                         const w = this.addMesh(geometryObj,
-                            { id: mesh.id, materialName });
-                        if (w) w.events.on('click', (e) => {
-                            // console.log('calling toggleSelectOnNode');
-                            this.mainStore.appearanceStore.toggleSelectOnNode(mesh.id)
-                        });
+                            { id, materialName });
+                        if (w) {
+                            w.events.on('click', (e) => {
+                                // console.log('calling toggleSelectOnNode');
+                                this.mainStore.appearanceStore.toggleSelectOnNode(id)
+                            });
+                            w.events.on('positionUpdate', (e) => {
+                                let sumX = 0;
+                                let sumY = 0;
+                                for (let p of e.positions) {
+                                    sumX += p.x;
+                                    sumY += p.y;
+                                }
+                                if (e.positions.length === 0) {
+                                    this.mainStore.setScreenPosition(id, { x: -999, y: -999 });
+                                } else {
+                                    const avgPosition = {
+                                        x: sumX / e.positions.length,
+                                        y: sumY / e.positions.length
+                                    };
+                                    this.mainStore.setScreenPosition(id, avgPosition);
+                                }
+
+                            });
+                        }
                     }
 
                 }

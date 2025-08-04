@@ -20,6 +20,15 @@
   right: 200px;
   border: 1px solid blue;
 
+  .viewer-overlay {
+    position: absolute !important;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+  }
+
   canvas {
     position: absolute !important;
     top: 0px;

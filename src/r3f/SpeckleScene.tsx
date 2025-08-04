@@ -41,7 +41,7 @@ const MeshListSelectView = observer(({
         {allMeshes.map(geometry => (
             <MeshView
                 onClick={(e) => {
-                    console.log('MESH VIEW ONLCLICK');
+                    // console.log('MESH VIEW ONLCLICK');
                     e.stopPropagation();
                     geometry.events.broadcast('click', { event: e });
                 }}
@@ -57,8 +57,9 @@ const MeshListSelectView = observer(({
     </Select>
 });
 
-export type CameraController = EventEmitter<ViewerZoomEvents & ViewModeEvents> & { settings: CameraControlSettings };
+export type CameraController = { settings: CameraControlSettings, events: EventEmitter<ViewerZoomEvents & ViewModeEvents> };
 type SceneProps = {
+    lightIntensity: number,
     cameraController: CameraController
 };
 
@@ -70,7 +71,7 @@ function Scene(props: SceneProps) {
 
     const { lightPosition, lightIntensity } = useControls({
         lightPosition: { value: [3, 5, 2], label: 'vec' },
-        lightIntensity: { value: 2, min: 0, max: 10, step: 0.1 },
+        lightIntensity: { value: props.lightIntensity, min: 0, max: 10, step: 0.1 },
     });
     const { displayLines, displayBase, selfShading, displayMeshes } = useControls({
         displayMeshes: true,
@@ -83,14 +84,14 @@ function Scene(props: SceneProps) {
 
     const controlsRef = useRef<CameraControls>(null);
 
-    useZoomControls(controlsRef, cameraController, speckleStore.glowMeshes);
+    useZoomControls(controlsRef, cameraController.events, speckleStore.glowMeshes);
 
     const outlineProperties = appearanceStore!.getOuterGlowValues();
     return (
         <>
             <ambientLight color={'#999'}/>
             <directionalLight position={lightPosition} intensity={lightIntensity}/>
-            <CameraSwitcher eventEmitter={cameraController} settings={cameraController.settings} ref={controlsRef}/>
+            <CameraSwitcher eventEmitter={cameraController.events} settings={cameraController.settings} ref={controlsRef}/>
             <Selection>
                 <EffectComposer autoClear={false}>
                     <Outline

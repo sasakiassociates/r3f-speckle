@@ -20,6 +20,9 @@ export class MainStore {
     @observable
     isReady = false;
 
+    @observable
+    screenPositions: { [p: string]: { x: number, y: number } } = {};
+
     appearanceStore: BasicAppearanceStore;
     speckleLoader: BasicSpeckleLoader;
     dataManager: SpeckleDataManager;
@@ -85,7 +88,10 @@ export class MainStore {
         if (streamId && authToken && commitObjectId) {
             runInAction(() => this.isConnecting = true);
 
-            await this.speckleLoader.construct(server, authToken, streamId, commitObjectId);
+            const commitObjectIdParts = commitObjectId.split(',');
+            for (let oId of commitObjectIdParts) {
+                await this.speckleLoader.construct(server, authToken, streamId, oId);
+            }
 
             runInAction(() => {
                 this.isConnecting = false
@@ -102,6 +108,11 @@ export class MainStore {
             // }
 // console.log('authToken got', authToken);
         }
+    }
+
+    @action
+    setScreenPosition(id:string, position: { x: number; y: number }) {
+        this.screenPositions[id] = position;
     }
 }
 

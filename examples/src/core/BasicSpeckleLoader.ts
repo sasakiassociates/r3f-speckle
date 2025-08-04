@@ -17,6 +17,10 @@ export class BasicSpeckleLoader extends SpeckleLoader {
         return this.loader;
     }
 
+    getStreamUrl() {
+        return `https://sasaki.speckle.xyz/api/stream/${this.streamId}`;
+    }
+
     speckleArray(data: any) {
         const format = 'flat'; //vs nested
         // the data format of 75pleasant and rhinoCapital from speckle are different

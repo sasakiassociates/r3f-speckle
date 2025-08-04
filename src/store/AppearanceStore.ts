@@ -7,6 +7,7 @@ export type AppearanceAttributes = {//this is a mix of properties for lines as w
     color: string,
     label?: string,
     opacity?: number,
+    emissiveIntensity?: number,
     outerGlow?: boolean,
     transparent?: boolean,
     style?: MeshMaterialStyle,

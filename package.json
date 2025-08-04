@@ -1,7 +1,7 @@
 {
   "name": "@strategies/r3f-speckle",
   "private": false,
-  "version": "0.1.0-b.17",
+  "version": "0.1.2-b.1",
   "type": "module",
   "source": "src/index.ts",
   "main": "dist/index.js",
@@ -36,7 +36,6 @@
     "tree-model": "^1.0.7"
   },
   "peerDependencies": {
-    "@react-three/fiber": "^8.15.11",
     "mobx": "^6.4.2",
     "mobx-keystone": "^1.6.2",
     "mobx-react-lite": "^3.4.3",

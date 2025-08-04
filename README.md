@@ -101,7 +101,7 @@ Note: use of the global speckleStore is likely to change if we need more sophist
 ### Dev Notes
 
 #### Publishing local 
-(total time <2 minutes)
+(total time <1 minute)
 
 Here:
 1. Run esbuild
@@ -109,7 +109,6 @@ Here:
 3. Run localPub
 
 In target solution:
-1. Search and replace in package.json
-2. Run `pnpm install`
-3. Delete older folders in node_modules/.pnpm
-4. Restart dev server
+1. Run _maintenance/updateLocalReferences.js
+2. Restart dev server
+   Note if the dev server hangs after an update, it can be helpful to run build, then start it again

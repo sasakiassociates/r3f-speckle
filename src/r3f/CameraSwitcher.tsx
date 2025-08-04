@@ -9,6 +9,8 @@ import { computeBoundingSphere } from "../three";
 
 export type ViewModeEvents = {
     setView: 'top' | 'side' | '45',//handled in CameraSwitcher
+    requestViewState: (state: string) => void,
+    restoreView: {viewJson: string, transition: boolean}
 }
 
 type CameraSwitcherProps = {
@@ -18,7 +20,8 @@ type CameraSwitcherProps = {
 
 export type CameraControlSettings = {
     orthoMode: boolean;
-    useSimplifiedPanning: boolean
+    useSimplifiedPanning: boolean;
+    initialView?: string
 }
 
 export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutRef<CameraSwitcherProps> & React.RefAttributes<CameraControls>> = forwardRef<CameraControls, CameraSwitcherProps>(({
@@ -77,6 +80,27 @@ export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutR
 
     });
 
+    useEventSubscription(eventEmitter, 'requestViewState', (withState: (state:string)=> void) => {
+        const cameraControls = orthoMode ? orthoControlsRef.current : perspControlsRef.current;
+        if (cameraControls) {
+            withState(cameraControls.toJSON());
+        }
+    });
+
+    useEventSubscription(eventEmitter, 'restoreView', ({viewJson, transition}) => {
+        const cameraControls = orthoMode ? orthoControlsRef.current : perspControlsRef.current;
+        if (cameraControls) {
+            cameraControls.fromJSON(viewJson, transition);
+        }
+    });
+
+    useEffect(() => {
+        if (!settings.initialView) return;
+        const cameraControls = orthoMode ? orthoControlsRef.current : perspControlsRef.current;
+        if (cameraControls) {
+            cameraControls.fromJSON(settings.initialView, false);
+        }
+    }, [settings.initialView]);
 
     useEffect(() => {
         if (orthoMode) {
@@ -87,12 +111,6 @@ export const CameraSwitcher: React.ForwardRefExoticComponent<React.PropsWithoutR
             set({ camera: perspCamera });
         }
     }, [orthoMode, set]);
-
-    // useEffect(() => {
-    //     if (controlsRef.current) {
-    //         controlsRef.current.update(1);//Note sure what to use for delta
-    //     }
-    // }, [camera]);
 
     let orthoButtons: MouseButtons = {
         left: CameraControlsLib.ACTION.ROTATE,

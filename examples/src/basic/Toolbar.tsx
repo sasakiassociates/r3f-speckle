@@ -8,17 +8,30 @@ import {
     MagnifyingGlassMinus as ZoomOutIcon,
     MagnifyingGlassPlus as ZoomInIcon,
     Rows as SideIcon,
-    Stack as Icon45
+    Stack as Icon45,
+    FolderOpen as LoadIcon,
+    FloppyDisk as SaveIcon
+
 } from "@phosphor-icons/react";
 import { EventEmitter } from "@strategies/react-events";
 import type { ViewerZoomEvents, ViewModeEvents } from "@strategies/r3f-speckle/r3f";
 import { action, computed, makeObservable, observable } from "mobx";
 import { observer } from "mobx-react-lite";
-export class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents> {
+
+class MapControlsEventEmitter extends EventEmitter<ViewerZoomEvents & ViewModeEvents> {
+}
+
+
+export class MapControls  {
+    events: MapControlsEventEmitter = new MapControlsEventEmitter();
     constructor() {
-        super();
         makeObservable(this);
     }
+
+    savedView: {
+        orthoMode: boolean,
+        viewState?: string;
+    } = { orthoMode: false };
 
     @observable
     orthoMode = false;
@@ -34,6 +47,7 @@ export class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents>
         return {
             orthoMode: this.orthoMode,
             useSimplifiedPanning: this.useSimplifiedPanning,
+            initialView: localStorage.getItem('mapControls_initial_view') ?? undefined,
         }
     }
 
@@ -48,30 +62,47 @@ export class MapControls extends EventEmitter<ViewerZoomEvents & ViewModeEvents>
     }
 
     zoomExtents() {
-        this.emit('zoomExtents');
+        this.events.emit('zoomExtents');
     }
 
     zoomToSelected() {
-        this.emit('zoomToSelected');
+        this.events.emit('zoomToSelected');
     }
 
     zoomIn() {
-        this.emit('zoomIn', this.zoomStrength);
+        this.events.emit('zoomIn', this.zoomStrength);
     }
 
     zoomOut() {
-        this.emit('zoomOut', this.zoomStrength);
+        this.events.emit('zoomOut', this.zoomStrength);
     }
 
     setView(view: 'top' | 'side' | '45') {
-        this.emit('setView', view);
+        this.events.emit('setView', view);
         // this.recenter();
     }
 
     recenter() {
         setTimeout(() => {
-            this.emit('zoomExtents');
+            this.events.emit('zoomExtents');
         }, 300);
+    }
+
+    @action
+    restoreView() {
+        if (!this.savedView.viewState) return;
+        this.orthoMode = this.savedView.orthoMode;
+        this.events.emit('restoreView', {viewJson:  this.savedView.viewState, transition: true})
+    }
+
+    saveView() {
+        this.events.emit('requestViewState', (viewState) => {
+            this.savedView = {
+                orthoMode: this.orthoMode,
+                viewState
+            };
+            localStorage.setItem('mapControls_initial_view', viewState);
+        })
     }
 }
 
@@ -105,6 +136,12 @@ export const Toolbar = observer(({ mapControls }: {
         </IconButton>
         <IconButton onClick={() => mapControls.setView('side')}>
             <SideIcon/>
+        </IconButton>
+        <IconButton onClick={() => mapControls.restoreView()}>
+            <LoadIcon/>
+        </IconButton>
+        <IconButton onClick={() => mapControls.saveView()}>
+            <SaveIcon/>
         </IconButton>
     </div>;
 });

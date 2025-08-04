@@ -1,29 +1,32 @@
 import { Box, Html } from "@react-three/drei";
 import { cullSpaces } from "../utils.ts";
-import { Material, MeshBasicMaterial, MeshStandardMaterial, TextureLoader, Vector3 } from "three";
+import { Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, TextureLoader, Vector3 } from "three";
 import type { NodeDataWrapper } from "../speckle";
 import { type MeshProps, type ThreeEvent, useLoader } from "@react-three/fiber";
 import { DoubleSide } from "three";
 import type { AppearanceAttributes } from "../store";
 import { MeshFlatMaterial } from "./materials/MeshFlatMaterial.ts";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import TrackPosition from "./TrackPosition.tsx";
 
 const generateMaterialKey = (props: any) => JSON.stringify(props);
 export type MeshMaterialStyle = 'flat' | 'solid' | 'translucent' | 'texture';
 export type MaterialAttributes = {
     color: string,
     opacity?: number,
+    emissiveIntensity?: number,
     transparent?: boolean,
     style?: MeshMaterialStyle
 };
 
 //another r3f method is to share materials via useResource https://codesandbox.io/p/sandbox/billowing-monad-bgnnt?file=%2Fsrc%2FApp3d.tsx
 const useMaterial = (materialProps: MaterialAttributes, materialCache: { [key: string]: Material }) => {
-    const pickMaterialAttributes = ({ color, opacity, style }: MaterialAttributes) => {
+    const pickMaterialAttributes = ({ color, opacity, style, emissiveIntensity }: MaterialAttributes) => {
         const opacityApplied = opacity === undefined ? 1 : opacity;
         return {
             color,
             opacity: opacityApplied,
+            emissiveIntensity: emissiveIntensity,
             transparent: opacityApplied < 1,
             style: style || 'solid'
         };
@@ -44,16 +47,19 @@ const useMaterial = (materialProps: MaterialAttributes, materialCache: { [key: s
                         maxOpacity: matProps.opacity * 4
                     });
                     break;
-                case 'flat':
-                    newMaterial = new MeshBasicMaterial({ side: DoubleSide, ...matProps });
+                case 'flat': {
+                    const { emissiveIntensity, ...remProps } = matProps;
+                    newMaterial = new MeshBasicMaterial({ side: DoubleSide, ...remProps });
                     break;
-                case 'texture':
-                    const { color, ...remProps } = matProps;
+                }
+                case 'texture': {
+                    const { color, emissiveIntensity, ...remProps } = matProps;
                     const texture = useLoader(TextureLoader, color);
-                    newMaterial = new MeshBasicMaterial({...remProps, map: texture });
+                    newMaterial = new MeshBasicMaterial({ ...remProps, depthWrite: false, map: texture });
                     break;
+                }
                 default:
-                    newMaterial = new MeshStandardMaterial({ side: DoubleSide, ...matProps });
+                    newMaterial = new MeshStandardMaterial({ side: DoubleSide, emissive: matProps.color, flatShading: true, ...matProps });
             }
             materialCache[key] = newMaterial;
         }
@@ -69,33 +75,49 @@ type MeshViewProps = MeshProps & {
 
 export const MeshView = ((props: MeshViewProps) => {
         const { geometryWrapper, appearance, materialCache, ...rest } = props;
+        const ref = useRef<Mesh>(null);
 
         const material = useMaterial(appearance, materialCache);
 
-        const center = useMemo(() => {
+        const { trackPoints, center } = useMemo(() => {
             geometryWrapper.meshGeometry?.computeBoundingBox();
             const boxCenter = new Vector3();
-            geometryWrapper.meshGeometry?.boundingBox?.getCenter(boxCenter);
-            return boxCenter;
+            const trackPoints: Vector3[] = [];
+            const boundingBox = geometryWrapper.meshGeometry?.boundingBox;
+            if (boundingBox) {
+                boundingBox.getCenter(boxCenter);
+                trackPoints.push(boundingBox.min);
+                trackPoints.push(boxCenter);
+                trackPoints.push(boundingBox.max);
+            }
+            return { center: boxCenter, trackPoints };
         }, [geometryWrapper.meshGeometry]);
 
         const label = appearance.label;
+        //`${center.x.toFixed(1)},${center.y.toFixed(1)},${center.z.toFixed(1)}`;
         // if (appearance.style === 'texture') {
         //     return <TempBox appearance={appearance} materialCache={materialCache}/>
         // }
-        return <mesh
-            key={geometryWrapper.id}
-            geometry={geometryWrapper.meshGeometry}
-            material={material}
-            {...rest}
-        >
-            {label && (
-                <Html position={center}>
-                    <div onClick={() => {
-                        geometryWrapper.events.broadcast('click')
-                    }}><span className={'unit-tag'}>{label}</span></div>
-                </Html>
-            )}
-        </mesh>
+        return <>
+            <mesh ref={ref}
+                  key={geometryWrapper.id}
+                  geometry={geometryWrapper.meshGeometry}
+                  material={material}
+                  renderOrder={appearance.style === "texture" ? 0 : 1}
+                  {...rest}
+            >
+                {label && (
+                    <Html position={center}>
+                        <div onClick={() => {
+                            geometryWrapper.events.broadcast('click')
+                        }}><span className={'unit-tag'}>{label}</span></div>
+                    </Html>
+                )}
+            </mesh>
+            <TrackPosition points={trackPoints} onPositionUpdate={(positions) => {
+                // console.log('positionUpdate', position)
+                geometryWrapper.events.broadcast('positionUpdate', { positions })
+            }} objectRef={ref}/>
+        </>
     })
 ;

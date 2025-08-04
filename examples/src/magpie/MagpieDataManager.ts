@@ -6,6 +6,17 @@ import type ObjectLoader from "@speckle/objectloader";
 import type { NodeDataWrapper } from "@strategies/r3f-speckle/speckle";
 import { AppearanceNodeWrapper } from "../core/AppearanceNodeWrapper.ts";
 
+export const tagsToDictionary = (tagList: string[]) => {
+    const ans: { [key: string]: string; } = {};
+    for (let tagPair of tagList) {
+        const bits = tagPair.split(':');
+        if (bits.length === 2) {
+            ans[bits[0]] = bits[1];
+        }
+    }
+    return ans;
+};
+
 export class MagpieDataManager extends SpeckleDataManager {
     private mainStore: MainStore;
 
@@ -45,17 +56,25 @@ export class MagpieDataManager extends SpeckleDataManager {
 
                 const id = programChunk.id;
 
-                this.addMesh(programGeometry, { id });
+                this.addMesh(programGeometry, { id, ...tagsToDictionary(programChunk.ProgramTags.Items) });
 
                 const outline = programChunk["@ProgramOutlines"];
-                this.addLine(outline, { id, isFloorLine: true });
+                if (outline) this.addLine(outline, { id, isFloorLine: true });
 
             }
 
+            //TEMP
             // for (let context of rootObj['@Contexts']["@{0}"][0].Items) {
             //     if (!context['@ContextGeometry']) continue;
-            //     const id = context.id;
-            //     this.addMesh(context['@ContextGeometry'], { id });
+            //     if (Array.isArray(context['@ContextGeometry'])) {
+            //         for (let g of context['@ContextGeometry']) {
+            //             const id = g.id;
+            //             this.addMesh(g, { id });
+            //         }
+            //     } else {
+            //         const id = context.id;
+            //         this.addMesh(context['@ContextGeometry'], { id });
+            //     }
             // }
 
             let unnamedCount = 0;
