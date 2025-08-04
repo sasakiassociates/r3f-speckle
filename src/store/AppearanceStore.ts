@@ -11,7 +11,8 @@ export type AppearanceAttributes = {//this is a mix of properties for lines as w
     outerGlow?: boolean,
     transparent?: boolean,
     style?: MeshMaterialStyle,
-    lineWidth?: number
+    lineWidth?: number,
+    options?: Record<string, any>
 };
 
 export abstract class AppearanceStore {
