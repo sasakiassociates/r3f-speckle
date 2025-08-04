@@ -3,7 +3,7 @@ import { action, computed, makeObservable } from "mobx";
 import type ObjectLoader from "@speckle/objectloader";
 import type { AppearanceAttributes } from "@strategies/r3f-speckle/store";
 import type { BasicAppearanceStore } from "./BasicAppearanceStore";
-import type { MeshMaterialStyle } from "@strategies/r3f-speckle/r3f/MeshView.tsx";
+import type { MeshMaterialStyle } from "@strategies/r3f-speckle/r3f/hooks/useMaterial.ts";
 
 //this approach allows the NodeDataWrapper itself to also control appearance.
 //in this case the AppearanceStore simply cedes control over appearance to the AppearanceNodeWrapper
@@ -42,7 +42,12 @@ export class AppearanceNodeWrapper extends NodeDataWrapper {
             return { ...general, color: "#238bb8" };
         }
         if (this.metadata?.isBaseImage) {
-            return { ...general, style:'texture', color: this.metadata?.imageUrl };
+            return {
+                ...general,
+                style: 'texture',
+                color: this.metadata?.imageUrl,
+                options: { token: this.metadata?.imageAuthToken }
+            };
         }
         // if (this.materialName.startsWith('Texture') || this.metadata?.isBaseImage) {
         //     return { ...general, style:'texture', color: "https://sasaki.speckle.xyz/api/stream/2a7f62dd54/blob/4b8470d1f6" };
